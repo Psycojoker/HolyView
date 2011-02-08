@@ -69,6 +69,14 @@ class Item():
     def add_point(self):
         self.progress.append(date.today())
 
+    def more(self):
+        self.consequence += 1
+
+    def less(self):
+        self.consequence -= 1
+        if self.consequence < 0:
+            self.consequence = 0
+
 class ItemList():
     def __init__(self):
         self.items = self._get_all()
@@ -78,6 +86,7 @@ class ItemList():
         self.save()
 
     def get(self):
+        self.items = sorted(self.items, key=lambda x: -x.consequence)
         return self.items
 
     def _get_all(self):
@@ -100,6 +109,7 @@ class ItemWidget(urwid.Text):
 
     def update(self):
         text = []
+        text.append('%i ' % self.item.consequence)
         if not self.item.finished:
             text.append(self.item.name)
         else:
@@ -160,6 +170,8 @@ class MainList(object):
         louie.connect(self.toggle_current_item,            " _main")
         louie.connect(self.add_point,                      "+_main")
         louie.connect(self.remove_point,                   "-_main")
+        louie.connect(self.more,                           "m_main")
+        louie.connect(self.less,                           "l_main")
 
         louie.connect(self.get_user_input_main,            "enter_user_input_main")
 
@@ -211,6 +223,16 @@ class MainList(object):
     @update_main
     def add_point(self):
         self._get_current_item().add_point()
+        self._get_current_widget().update()
+
+    @update_main
+    def more(self):
+        self._get_current_item().more()
+        self._get_current_widget().update()
+
+    @update_main
+    def less(self):
+        self._get_current_item().less()
         self._get_current_widget().update()
 
     @update_main
