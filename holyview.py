@@ -125,6 +125,7 @@ class MainList(object):
         D(self.item_list.get())
         self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame.set_body(urwid.ListBox(self.content))
+        self.frame.get_body().set_focus(self.position)
         self.state.set_state("main")
 
     def show_all_input(self, input, raw):
