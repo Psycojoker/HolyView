@@ -102,8 +102,9 @@ class ItemList():
         "Always save on death to be sure not to lose datas"
         self.save()
 
-    def get(self):
+    def get(self, full=False):
         self.items = sorted(self.items, key=lambda x: -x.consequence)
+        self.items = filter(lambda x: not x.finished, self.items)
         return self.items
 
     def _get_all(self):
