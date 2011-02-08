@@ -78,6 +78,9 @@ class ItemList():
     def add(self, *args):
         self.items.append(Item(*args))
 
+    def remove(self, item):
+        self.items.remove(item)
+
 class ItemWidget(urwid.Text):
     def __init__(self, item):
         self.item = item
@@ -148,6 +151,16 @@ class MainList(object):
             self.position -= 1
             self.frame.get_body().set_focus(self.position)
 
+    @update_main
+    def remove_current_item(self):
+        self.item_list.remove(self._get_current_item())
+
+    def _get_current_widget(self):
+        return self.frame.get_body().get_focus()[0].original_widget
+
+    def _get_current_item(self):
+        return self.frame.get_body().get_focus()[0].original_widget.item
+
     def exit(self):
         raise urwid.ExitMainLoop
 
@@ -157,6 +170,7 @@ class MainList(object):
         louie.connect(self.fill_list,                      "update_main")
         louie.connect(self.go_down,                        "j_main")
         louie.connect(self.go_up,                          "k_main")
+        louie.connect(self.remove_current_item,            "d_main")
 
         louie.connect(self.get_user_input_main,            "enter_user_input_main")
 
