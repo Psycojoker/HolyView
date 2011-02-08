@@ -84,10 +84,12 @@ class MainList(object):
         self.init_signals()
         self.frame = None
         self.state = State(["main", "user_input_main"], "main")
-        self.footer = urwid.Edit("", "")
-        self.fill_list()
+        self.content = [ItemWidget(i) for i in self.item_list.get()]
+        self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame = urwid.Frame(urwid.ListBox(self.content))
+        self.footer = urwid.Edit("", "")
         self.frame.set_footer(self.footer)
+        #self.fill_list()
         #self.show_key = urwid.Text("MaList 0.1", wrap='clip')
         #self.frame.set_header(urwid.AttrMap(self.show_key, 'header'))
 
@@ -108,10 +110,11 @@ class MainList(object):
 
     def fill_list(self):
         self.content = [ItemWidget(i) for i in self.item_list.get()]
+        D(self.item_list.get())
         self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
-        self.frame = urwid.Frame(urwid.ListBox(self.content))
-        self.frame.set_footer(self.footer)
+        self.frame.set_body(urwid.ListBox(self.content))
         self.frame.body.set_focus(0)
+        self.state.set_state("main")
 
     def show_all_input(self, input, raw):
         return input
@@ -138,7 +141,7 @@ class MainList(object):
         louie.connect(self.get_user_input_main,            "enter_user_input_main")
 
     def add_task(self):
-        self._wait_for_input("New item:", self.get_add_task)
+        self._wait_for_input("New item: ", self.get_add_task)
 
     @disconnect
     #@have_input
