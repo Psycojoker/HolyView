@@ -90,6 +90,7 @@ class MainList(object):
         self.frame = urwid.Frame(urwid.ListBox(self.content))
         self.footer = urwid.Edit("", "")
         self.frame.set_footer(self.footer)
+        self.position = 0
         #self.fill_list()
         #self.show_key = urwid.Text("MaList 0.1", wrap='clip')
         #self.frame.set_header(urwid.AttrMap(self.show_key, 'header'))
@@ -114,7 +115,6 @@ class MainList(object):
         D(self.item_list.get())
         self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame.set_body(urwid.ListBox(self.content))
-        self.frame.body.set_focus(0)
         self.state.set_state("main")
 
     def show_all_input(self, input, raw):
@@ -131,6 +131,16 @@ class MainList(object):
         #if input == "q":
             #raise urwid.ExitMainLoop
 
+    def go_down(self):
+        if self.position < (len(self.content) - 1):
+            self.position += 1
+            self.frame.get_body().set_focus(self.position)
+
+    def go_up(self):
+        if self.position > 0:
+            self.position -= 1
+            self.frame.get_body().set_focus(self.position)
+
     def exit(self):
         raise urwid.ExitMainLoop
 
@@ -138,6 +148,8 @@ class MainList(object):
         louie.connect(self.exit,                           "q_main")
         louie.connect(self.add_task,                       "a_main")
         louie.connect(self.fill_list,                      "update_main")
+        louie.connect(self.go_down,                        "j_main")
+        louie.connect(self.go_up,                          "k_main")
 
         louie.connect(self.get_user_input_main,            "enter_user_input_main")
 
