@@ -58,6 +58,9 @@ class Item():
         self.creation_date = creation_date
         self.completion_date = completion_date
 
+    def toggle(self):
+        self.finished = not self.finished
+
 class ItemList():
     def __init__(self):
         self.items = self._get_all()
@@ -85,9 +88,13 @@ class ItemWidget(urwid.Text):
     def __init__(self, item):
         self.item = item
         super(ItemWidget, self).__init__(item.name)
+        self.update()
 
     def update(self):
-        self.set_text(self.item.name)
+        if not self.item.finished:
+            self.set_text(self.item.name)
+        else:
+            self.set_text(('finished', self.item.name))
 
 class MainList(object):
     def __init__(self):
@@ -116,6 +123,7 @@ class MainList(object):
                    ('old', 'yellow', '', 'bold'),
                    ('date left', 'black', 'light cyan'),
                    ('date late', 'yellow', 'dark magenta'),
+                   ('finished', 'dark cyan', ''),
                    ('mission', 'light gray', '')]
 
         urwid.MainLoop(self.frame, palette, input_filter=self.show_all_input, unhandled_input=self.manage_input).run()
@@ -173,11 +181,17 @@ class MainList(object):
         louie.connect(self.go_up,                          "k_main")
         louie.connect(self.remove_current_item,            "d_main")
         louie.connect(self.rename_current_item,            "r_main")
+        louie.connect(self.toggle_current_item,            " _main")
 
         louie.connect(self.get_user_input_main,            "enter_user_input_main")
 
     def rename_current_item(self):
         self._wait_for_input("New description: ", self.get_rename_current_item)
+
+    @update_main
+    def toggle_current_item(self):
+        self._get_current_item().toggle()
+        self._get_current_widget().update()
 
     @disconnect
     @have_input
