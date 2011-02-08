@@ -136,6 +136,18 @@ class MainList(object):
         self.frame.get_body().set_focus(self.position)
         self.state.set_state("main")
 
+    def init_signals(self):
+        louie.connect(self.exit,                           "q_main")
+        louie.connect(self.add_task,                       "a_main")
+        louie.connect(self.fill_list,                      "update_main")
+        louie.connect(self.go_down,                        "j_main")
+        louie.connect(self.go_up,                          "k_main")
+        louie.connect(self.remove_current_item,            "d_main")
+        louie.connect(self.rename_current_item,            "r_main")
+        louie.connect(self.toggle_current_item,            " _main")
+
+        louie.connect(self.get_user_input_main,            "enter_user_input_main")
+
     def show_all_input(self, input, raw):
         return input
 
@@ -172,18 +184,6 @@ class MainList(object):
 
     def exit(self):
         raise urwid.ExitMainLoop
-
-    def init_signals(self):
-        louie.connect(self.exit,                           "q_main")
-        louie.connect(self.add_task,                       "a_main")
-        louie.connect(self.fill_list,                      "update_main")
-        louie.connect(self.go_down,                        "j_main")
-        louie.connect(self.go_up,                          "k_main")
-        louie.connect(self.remove_current_item,            "d_main")
-        louie.connect(self.rename_current_item,            "r_main")
-        louie.connect(self.toggle_current_item,            " _main")
-
-        louie.connect(self.get_user_input_main,            "enter_user_input_main")
 
     def rename_current_item(self):
         self._wait_for_input("New description: ", self.get_rename_current_item)
