@@ -21,8 +21,9 @@ def have_input(func):
 
 def update_main(func):
     def _update_main(*args):
-        func(*args)
+        to_return = func(*args)
         louie.send("update_main")
+        return to_return
 
     return _update_main
 
