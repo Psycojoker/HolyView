@@ -60,6 +60,7 @@ class Item():
 
     def toggle(self):
         self.finished = not self.finished
+        self.completion_date = date.today() if self.finished else None
 
     def remove_point(self):
         if self.progress:
