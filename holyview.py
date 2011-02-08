@@ -172,8 +172,19 @@ class MainList(object):
         louie.connect(self.go_down,                        "j_main")
         louie.connect(self.go_up,                          "k_main")
         louie.connect(self.remove_current_item,            "d_main")
+        louie.connect(self.rename_current_item,            "r_main")
 
         louie.connect(self.get_user_input_main,            "enter_user_input_main")
+
+    def rename_current_item(self):
+        self._wait_for_input("New description: ", self.get_rename_current_item)
+
+    @disconnect
+    @have_input
+    @update_main
+    def get_rename_current_item(self):
+        self._get_current_item().name = self.user_input
+        self._get_current_widget().update()
 
     def add_task(self):
         self._wait_for_input("New item: ", self.get_add_task)
