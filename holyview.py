@@ -16,6 +16,7 @@ def update_main(func):
     def _update_main(*args):
         func(*args)
         louie.send("update_main")
+
     return _update_main
 
 def disconnect(func):
