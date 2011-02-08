@@ -61,6 +61,13 @@ class Item():
     def toggle(self):
         self.finished = not self.finished
 
+    def remove_point(self):
+        if self.progress:
+            self.progress.pop()
+
+    def add_point(self):
+        self.progress.append(date.today())
+
 class ItemList():
     def __init__(self):
         self.items = self._get_all()
@@ -91,10 +98,15 @@ class ItemWidget(urwid.Text):
         self.update()
 
     def update(self):
+        text = []
         if not self.item.finished:
-            self.set_text(self.item.name)
+            text.append(self.item.name)
         else:
-            self.set_text(('finished', self.item.name))
+            text.append(('finished', self.item.name))
+
+        text.append(" ")
+        text.append(("old", "|"*len(self.item.progress)))
+        self.set_text(text)
 
 class MainList(object):
     def __init__(self):
@@ -145,6 +157,8 @@ class MainList(object):
         louie.connect(self.remove_current_item,            "d_main")
         louie.connect(self.rename_current_item,            "r_main")
         louie.connect(self.toggle_current_item,            " _main")
+        louie.connect(self.add_point,                      "+_main")
+        louie.connect(self.remove_point,                   "-_main")
 
         louie.connect(self.get_user_input_main,            "enter_user_input_main")
 
@@ -187,6 +201,16 @@ class MainList(object):
 
     def rename_current_item(self):
         self._wait_for_input("New description: ", self.get_rename_current_item)
+
+    @update_main
+    def remove_point(self):
+        self._get_current_item().remove_point()
+        self._get_current_widget().update()
+
+    @update_main
+    def add_point(self):
+        self._get_current_item().add_point()
+        self._get_current_widget().update()
 
     @update_main
     def toggle_current_item(self):
