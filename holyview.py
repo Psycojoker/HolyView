@@ -219,6 +219,8 @@ class MainList(object):
     @update_main
     def remove_current_item(self):
         self.item_list.remove(self._get_current_item())
+        if self.position == len(self.content) - 1:
+            self.position = len(self.content) - 2
 
     def _get_current_widget(self):
         return self.frame.get_body().get_focus()[0].original_widget
