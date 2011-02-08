@@ -49,10 +49,10 @@ class State(object):
         return self.state
 
 class Item():
-    def __init__(self, name, finished=False, progress=[], difficulty=0, consequence=0, creation_date=date.today(), completion_date=None):
+    def __init__(self, name, finished=False, progress=None, difficulty=0, consequence=0, creation_date=date.today(), completion_date=None):
         self.name = name
         self.finished = finished
-        self.progress = progress
+        self.progress = progress if progress else []
         self.difficulty = difficulty
         self.consequence = consequence
         self.creation_date = creation_date
