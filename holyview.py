@@ -104,8 +104,10 @@ class ItemList():
 
     def get(self, full=False):
         self.items = sorted(self.items, key=lambda x: -x.consequence)
-        self.items = filter(lambda x: not x.finished, self.items)
-        return self.items
+        if not full:
+            return filter(lambda x: not x.finished, self.items)
+        else:
+            return self.items
 
     def _get_all(self):
         return cPickle.load(open("/home/psycojoker/.malistdb", "r"))
@@ -149,6 +151,7 @@ class MainList(object):
         self.footer = urwid.Edit("", "")
         self.frame.set_footer(self.footer)
         self.position = 0
+        self.full_list = False
         #self.fill_list()
         #self.show_key = urwid.Text("MaList 0.1", wrap='clip')
         #self.frame.set_header(urwid.AttrMap(self.show_key, 'header'))
@@ -170,7 +173,7 @@ class MainList(object):
         urwid.MainLoop(self.frame, palette, input_filter=self.show_all_input, unhandled_input=self.manage_input).run()
 
     def fill_list(self):
-        self.content = [ItemWidget(i) for i in self.item_list.get()]
+        self.content = [ItemWidget(i) for i in self.item_list.get(self.full_list)]
         D(self.item_list.get())
         self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame.set_body(urwid.ListBox(self.content))
@@ -190,6 +193,7 @@ class MainList(object):
         louie.connect(self.remove_point,                   "-_main")
         louie.connect(self.more,                           "m_main")
         louie.connect(self.less,                           "l_main")
+        louie.connect(self.toggle_show_full_list,          "h_main")
 
         louie.connect(self.get_user_input_main,            "enter_user_input_main")
 
@@ -222,6 +226,10 @@ class MainList(object):
         self.item_list.remove(self._get_current_item())
         if self.position == len(self.content) - 1:
             self.position = len(self.content) - 2
+
+    @update_main
+    def toggle_show_full_list(self):
+        self.full_list = not self.full_list
 
     def _get_current_widget(self):
         return self.frame.get_body().get_focus()[0].original_widget
