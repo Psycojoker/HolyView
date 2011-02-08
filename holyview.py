@@ -12,6 +12,13 @@ import louie
 
 def D(text): open("DEBUG", "a").write("%s\n" % text)
 
+def have_input(func):
+    def _have_input(*args):
+        # ugly, to get "self"
+        if args[0].user_input.strip():
+            func(*args)
+    return _have_input
+
 def update_main(func):
     def _update_main(*args):
         func(*args)
@@ -157,7 +164,7 @@ class MainList(object):
         self._wait_for_input("New item: ", self.get_add_task)
 
     @disconnect
-    #@have_input
+    @have_input
     @update_main
     def get_add_task(self):
         self.item_list.add(self.user_input)
