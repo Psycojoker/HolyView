@@ -27,6 +27,22 @@ def update_main(func):
 
     return _update_main
 
+def follow_item(func):
+    def _follow_item(*args):
+        item = func(*args)
+        self = args[0]
+
+        a = 0
+        for i in self.content:
+            if i.original_widget.item == item:
+                break
+            a += 1
+        self.position = a
+        self.frame.get_body().set_focus(self.position)
+        return item
+
+    return _follow_item
+
 def disconnect(func):
     def _disconnect(*args):
         map(lambda i: louie.disconnect(i(), "user_input_done"), louie.get_all_receivers(signal="user_input_done"))
@@ -226,15 +242,19 @@ class MainList(object):
         self._get_current_item().add_point()
         self._get_current_widget().update()
 
+    @follow_item
     @update_main
     def more(self):
         self._get_current_item().more()
         self._get_current_widget().update()
+        return self._get_current_item()
 
+    @follow_item
     @update_main
     def less(self):
         self._get_current_item().less()
         self._get_current_widget().update()
+        return self._get_current_item()
 
     @update_main
     def toggle_current_item(self):
