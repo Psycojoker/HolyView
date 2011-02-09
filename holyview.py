@@ -222,7 +222,6 @@ class MainList(object):
             self.frame.get_body().set_focus(self.position)
 
     @update_main
-    @update_position
     def remove_current_item(self):
         self.item_list.remove(self._get_current_item())
         if self.position == len(self.content) - 1:
