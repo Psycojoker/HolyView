@@ -42,7 +42,6 @@ def follow_item(func):
         return item
 
     return _follow_item
-
 def disconnect(func):
     def _disconnect(*args):
         map(lambda i: louie.disconnect(i(), "user_input_done"), louie.get_all_receivers(signal="user_input_done"))
@@ -84,6 +83,7 @@ class Item():
             self.progress.pop()
 
     def add_point(self):
+        D('"%s" got a new point' % self.name.encode("Utf-8"))
         self.progress.append(date.today())
 
     def more(self):
@@ -222,6 +222,7 @@ class MainList(object):
             self.frame.get_body().set_focus(self.position)
 
     @update_main
+    @update_position
     def remove_current_item(self):
         self.item_list.remove(self._get_current_item())
         if self.position == len(self.content) - 1:
@@ -309,6 +310,10 @@ if __name__ == "__main__":
     #ItemList().add("caca")
     #new_item("first item")
     #push_view()
+    #a = ItemList()
+    #for i in a.get():
+        #i.progress = list()
+    #a.save()
     MainList().run()
 
 # vim:set shiftwidth=4 tabstop=4 expandtab:
