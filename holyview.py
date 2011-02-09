@@ -12,6 +12,16 @@ import louie
 
 def D(text): open("DEBUG", "a").write("%s\n" % text)
 
+commands = {}
+
+def command(func, key, mode, doc):
+    louie.connect(func, "%s_%s" % (key, mode))
+    if doc:
+        if commands.has_key(mode):
+            commands[mode].append((key, doc))
+        else:
+            commands[mode] = [(key, doc)]
+
 def have_input(func):
     def _have_input(*args):
         # ugly, to get "self"
