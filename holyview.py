@@ -191,21 +191,21 @@ class MainList(object):
         self.state.set_state("main")
 
     def init_signals(self):
-        louie.connect(self.exit,                           "q_main")
-        louie.connect(self.add_task,                       "a_main")
-        louie.connect(self.fill_list,                      "update_main")
-        louie.connect(self.go_down,                        "j_main")
-        louie.connect(self.go_up,                          "k_main")
-        louie.connect(self.remove_current_item,            "d_main")
-        louie.connect(self.rename_current_item,            "r_main")
-        louie.connect(self.toggle_current_item,            " _main")
-        louie.connect(self.add_point,                      "+_main")
-        louie.connect(self.remove_point,                   "-_main")
-        louie.connect(self.more,                           "m_main")
-        louie.connect(self.less,                           "l_main")
-        louie.connect(self.toggle_show_full_list,          "h_main")
+        command(self.exit,                  "q", "main", "quit holyview")
+        command(self.add_task,              "a", "main", "add a new item")
+        command(self.go_down,               "j" ,"main", "move the cursor down")
+        command(self.go_up,                 "k", "main", "move the cursor up")
+        command(self.remove_current_item,   "d", "main", "remove the current item")
+        command(self.rename_current_item,   "r", "main", "rename the current item")
+        command(self.toggle_current_item,   " ", "main", "toggle the current item (between finished and unfinished)")
+        command(self.add_point,             "+", "main", "add a point the current item")
+        command(self.remove_point,          "-", "main", "remove a point the current item")
+        command(self.more,                  "m", "main", "augment the priority of the current item")
+        command(self.less,                  "l", "main", "lower the priority of the current item")
+        command(self.toggle_show_full_list, "h", "main", "toggle displaying the completed items")
 
-        louie.connect(self.get_user_input_main,            "enter_user_input_main")
+        command(self.fill_list,             "update", "main", None)
+        command(self.get_user_input_main,   "enter", "user_input_main", None)
 
     def show_all_input(self, input, raw):
         return input
