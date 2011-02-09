@@ -22,6 +22,16 @@ def command(func, key, mode, doc):
         else:
             commands[mode] = [(key, doc)]
 
+def get_documentations():
+    doc = ""
+    for i in commands.keys():
+        doc += "%s\n" % i
+        doc += "=" * len(i)
+        doc += "\n"
+        for a, b in commands[i]:
+            doc += "%s : %s\n" % (a, b)
+    return doc
+
 def have_input(func):
     def _have_input(*args):
         # ugly, to get "self"
