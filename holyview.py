@@ -60,6 +60,7 @@ def follow_item(func):
         return item
 
     return _follow_item
+
 def disconnect(func):
     def _disconnect(*args):
         map(lambda i: louie.disconnect(i(), "user_input_done"), louie.get_all_receivers(signal="user_input_done"))
