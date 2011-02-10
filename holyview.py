@@ -168,6 +168,8 @@ class HelpList(object):
         command(self.exit,                  "q", "help", "return to main view")
         command(self.go_down,               "j" ,"help", "move the cursor down")
         command(self.go_up,                 "k", "help", "move the cursor up")
+        command(self.go_down,               "down" ,"help", "move the cursor down")
+        command(self.go_up,                 "up", "help", "move the cursor up")
 
     def exit(self):
         louie.send("update_main")
