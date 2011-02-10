@@ -209,15 +209,62 @@ class GridView(object):
         self.item_list = item_list
         self.mid_importance = max(self.item_list.get(), key=lambda x: x.importance).importance / 2
         self.mid_urgence = max(self.item_list.get(), key=lambda x: x.urgence).urgence / 2
+        self.init_signals()
+        self.position_1 = 1
+        self.position_2 = 1
+        self.position_3 = 1
+        self.position_4 = 1
+        self.current_grid = "1"
 
     def fill_list(self):
-        c1 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important and urgent items"), 'center', wrap="any"), 'header')] + [ItemWidget(x) for x in self.item_list.get() if x.importance > self.mid_importance and x.urgence > self.mid_urgence]))
-        c2 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important items"), 'center', wrap="clip"), 'header')] + [ItemWidget(x) for x in self.item_list.get() if x.importance > self.mid_importance and x.urgence <= self.mid_urgence]))
-        c3 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Urgent items"), 'center', wrap="clip"), 'header')] + [ItemWidget(x) for x in self.item_list.get() if x.importance <= self.mid_importance and x.urgence > self.mid_urgence]))
-        c4 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Non urgent and non important items"), 'center'), 'header')] + [ItemWidget(x) for x in self.item_list.get() if x.importance <= self.mid_importance and x.urgence <= self.mid_urgence]))
-        a = urwid.Columns((c1, c2))
-        b = urwid.Columns((c3, c4))
+        self.c1 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important and urgent items"), 'center', wrap="any"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get() if x.importance > self.mid_importance and x.urgence > self.mid_urgence]))
+        self.c2 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important items"), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get() if x.importance > self.mid_importance and x.urgence <= self.mid_urgence]))
+        self.c3 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Urgent items"), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get() if x.importance <= self.mid_importance and x.urgence > self.mid_urgence]))
+        self.c4 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Non urgent and non important items"), 'center'), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get() if x.importance <= self.mid_importance and x.urgence <= self.mid_urgence]))
+        a = urwid.Columns((self.c1, self.c2))
+        b = urwid.Columns((self.c3, self.c4))
         self.frame.set_body(urwid.Pile((a, b)))
+        self.state.set_state("grid")
+        getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+
+    def init_signals(self):
+        command(self.exit,                      "q", "grid", "quit holyview")
+        self.back_to_main_list = lambda : louie.send("update_main")
+        command(self.back_to_main_list,         "G", "grid", "go back to the main list")
+        #command(self.add_task,                  "a", "grid", "add a new item")
+        command(self.go_down,                   "j" ,"grid", "move the cursor down")
+        command(self.go_up,                     "k", "grid", "move the cursor up")
+        #command(self.go_down,                   "down" ,"grid", "move the cursor down")
+        #command(self.go_up,                     "up", "grid", "move the cursor up")
+        #command(self.remove_current_item,       "d", "grid", "remove the current item")
+        #command(self.rename_current_item,       "r", "grid", "rename the current item")
+        #command(self.toggle_current_item,       " ", "grid", "toggle the current item (between finished and unfinished)")
+        #command(self.add_point,                 "+", "grid", "add a point the current item")
+        #command(self.remove_point,              "-", "grid", "remove a point the current item")
+        #command(self.more_urgence,              "M", "grid", "augment the urgence of the current item")
+        #command(self.less_urgence,              "L", "grid", "lower the urgence of the current item")
+        #command(self.more_importance,           "m", "grid", "augment the importance of the current item")
+        #command(self.less_importance,           "l", "grid", "lower the importance of the current item")
+        #command(self.toggle_show_full_list,     "h", "grid", "toggle displaying the completed items")
+        #command(self.toggle_urgence_importance, "i", "grid", "toggle displaying the completed items")
+        #command(self.doc.fill_list,             "?", "grid", "display help")
+        #command(self.grid.fill_list,            "G", "grid", "grid view")
+
+        command(self.fill_list,                  "update", "grid", None)
+        #command(self.get_user_input_main,        "enter", "user_input_main", None)
+
+    def go_down(self):
+        if getattr(self, "position_%s" % self.current_grid) < (len(getattr(self, "c%s" % self.current_grid).body) - 1):
+            setattr(self, "position_%s" % self.current_grid, getattr(self, "position_%s" % self.current_grid) + 1)
+            getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+
+    def go_up(self):
+        if getattr(self, "position_%s" % self.current_grid) > 1:
+            setattr(self, "position_%s" % self.current_grid, getattr(self, "position_%s" % self.current_grid) - 1)
+            getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+
+    def exit(self):
+        raise urwid.ExitMainLoop
 
 class MainList(object):
     def __init__(self):
