@@ -157,6 +157,37 @@ class ItemWidget(urwid.Text):
         text.append(("old", "|"*len(self.item.progress)))
         self.set_text(text)
 
+class HelpList(object):
+    def __init__(self, frame, state):
+        self.frame = frame
+        self.state = state
+        self.position = 0
+        self.init_signals()
+
+    def init_signals(self):
+        command(self.exit,                  "q", "help", "return to main view")
+        command(self.go_down,               "j" ,"help", "move the cursor down")
+        command(self.go_up,                 "k", "help", "move the cursor up")
+
+    def exit(self):
+        louie.send("update_main")
+
+    def fill_list(self):
+        self.content = [urwid.Text(i) for i in get_documentations()]
+        self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
+        self.frame.set_body(urwid.ListBox(self.content))
+        self.state.set_state("help")
+
+    def go_down(self):
+        if self.position < (len(self.content) - 1):
+            self.position += 1
+            self.frame.get_body().set_focus(self.position)
+
+    def go_up(self):
+        if self.position > 0:
+            self.position -= 1
+            self.frame.get_body().set_focus(self.position)
+
 class MainList(object):
     def __init__(self):
         self.item_list = ItemList()
