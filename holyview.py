@@ -235,6 +235,8 @@ class MainList(object):
         command(self.add_task,              "a", "main", "add a new item")
         command(self.go_down,               "j" ,"main", "move the cursor down")
         command(self.go_up,                 "k", "main", "move the cursor up")
+        command(self.go_down,               "down" ,"main", "move the cursor down")
+        command(self.go_up,                 "up", "main", "move the cursor up")
         command(self.remove_current_item,   "d", "main", "remove the current item")
         command(self.rename_current_item,   "r", "main", "rename the current item")
         command(self.toggle_current_item,   " ", "main", "toggle the current item (between finished and unfinished)")
