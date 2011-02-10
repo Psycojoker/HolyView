@@ -12,6 +12,24 @@ import louie
 
 def D(text): open("DEBUG", "a").write("%s\n" % text)
 
+commands = {}
+
+def command(func, key, mode, doc):
+    louie.connect(func, "%s_%s" % (key, mode))
+    if doc:
+        if commands.has_key(mode):
+            commands[mode].append((key, doc))
+        else:
+            commands[mode] = [(key, doc)]
+
+def get_documentations():
+    for i in commands.keys():
+        yield "%s" % i
+        yield "=" * len(i)
+        for a, b in commands[i]:
+            yield "%s : %s" % (a, b)
+        yield ""
+
 def have_input(func):
     def _have_input(*args):
         # ugly, to get "self"
@@ -139,17 +157,49 @@ class ItemWidget(urwid.Text):
         text.append(("old", "|"*len(self.item.progress)))
         self.set_text(text)
 
+class HelpList(object):
+    def __init__(self, frame, state):
+        self.frame = frame
+        self.state = state
+        self.position = 0
+        self.init_signals()
+
+    def init_signals(self):
+        command(self.exit,                  "q", "help", "return to main view")
+        command(self.go_down,               "j" ,"help", "move the cursor down")
+        command(self.go_up,                 "k", "help", "move the cursor up")
+
+    def exit(self):
+        louie.send("update_main")
+
+    def fill_list(self):
+        self.content = [urwid.Text(i) for i in get_documentations()]
+        self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
+        self.frame.set_body(urwid.ListBox(self.content))
+        self.state.set_state("help")
+
+    def go_down(self):
+        if self.position < (len(self.content) - 1):
+            self.position += 1
+            self.frame.get_body().set_focus(self.position)
+
+    def go_up(self):
+        if self.position > 0:
+            self.position -= 1
+            self.frame.get_body().set_focus(self.position)
+
 class MainList(object):
     def __init__(self):
         self.item_list = ItemList()
-        self.init_signals()
         self.frame = None
-        self.state = State(["main", "user_input_main"], "main")
+        self.state = State(("main", "user_input_main", "help"), "main")
         self.content = [ItemWidget(i) for i in self.item_list.get()]
         self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame = urwid.Frame(urwid.ListBox(self.content))
         self.footer = urwid.Edit("", "")
         self.frame.set_footer(self.footer)
+        self.doc = HelpList(self.frame, self.state)
+        self.init_signals()
         self.position = 0
         self.full_list = False
         #self.fill_list()
@@ -181,21 +231,22 @@ class MainList(object):
         self.state.set_state("main")
 
     def init_signals(self):
-        louie.connect(self.exit,                           "q_main")
-        louie.connect(self.add_task,                       "a_main")
-        louie.connect(self.fill_list,                      "update_main")
-        louie.connect(self.go_down,                        "j_main")
-        louie.connect(self.go_up,                          "k_main")
-        louie.connect(self.remove_current_item,            "d_main")
-        louie.connect(self.rename_current_item,            "r_main")
-        louie.connect(self.toggle_current_item,            " _main")
-        louie.connect(self.add_point,                      "+_main")
-        louie.connect(self.remove_point,                   "-_main")
-        louie.connect(self.more,                           "m_main")
-        louie.connect(self.less,                           "l_main")
-        louie.connect(self.toggle_show_full_list,          "h_main")
+        command(self.exit,                  "q", "main", "quit holyview")
+        command(self.add_task,              "a", "main", "add a new item")
+        command(self.go_down,               "j" ,"main", "move the cursor down")
+        command(self.go_up,                 "k", "main", "move the cursor up")
+        command(self.remove_current_item,   "d", "main", "remove the current item")
+        command(self.rename_current_item,   "r", "main", "rename the current item")
+        command(self.toggle_current_item,   " ", "main", "toggle the current item (between finished and unfinished)")
+        command(self.add_point,             "+", "main", "add a point the current item")
+        command(self.remove_point,          "-", "main", "remove a point the current item")
+        command(self.more,                  "m", "main", "augment the priority of the current item")
+        command(self.less,                  "l", "main", "lower the priority of the current item")
+        command(self.toggle_show_full_list, "h", "main", "toggle displaying the completed items")
+        command(self.doc.fill_list,         "?", "main", "display help")
 
-        louie.connect(self.get_user_input_main,            "enter_user_input_main")
+        command(self.fill_list,             "update", "main", None)
+        command(self.get_user_input_main,   "enter", "user_input_main", None)
 
     def show_all_input(self, input, raw):
         return input
