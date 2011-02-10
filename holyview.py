@@ -23,14 +23,12 @@ def command(func, key, mode, doc):
             commands[mode] = [(key, doc)]
 
 def get_documentations():
-    doc = ""
     for i in commands.keys():
-        doc += "%s\n" % i
-        doc += "=" * len(i)
-        doc += "\n"
+        yield "%s" % i
+        yield "=" * len(i)
         for a, b in commands[i]:
-            doc += "%s : %s\n" % (a, b)
-    return doc
+            yield "%s : %s" % (a, b)
+        yield ""
 
 def have_input(func):
     def _have_input(*args):
