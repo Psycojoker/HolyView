@@ -223,7 +223,7 @@ class MainList(object):
     def __init__(self):
         self.item_list = ItemList()
         self.frame = None
-        self.state = State(("main", "user_input_main", "help"), "main")
+        self.state = State(("main", "user_input_main", "help", "grid"), "main")
         self.content = [ItemWidget(i) for i in self.item_list.get()]
         self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame = urwid.Frame(urwid.ListBox(self.content))
