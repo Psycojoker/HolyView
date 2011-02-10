@@ -298,9 +298,11 @@ class MainList(object):
         if self.position == len(self.content) - 1:
             self.position = len(self.content) - 2
 
+    @follow_item
     @update_main
     def toggle_urgence_importance(self):
         self.urgence = not self.urgence
+        return self._get_current_item()
 
     @update_main
     def toggle_show_full_list(self):
