@@ -191,14 +191,15 @@ class HelpList(object):
 class MainList(object):
     def __init__(self):
         self.item_list = ItemList()
-        self.init_signals()
         self.frame = None
-        self.state = State(["main", "user_input_main"], "main")
+        self.state = State(("main", "user_input_main", "help"), "main")
         self.content = [ItemWidget(i) for i in self.item_list.get()]
         self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame = urwid.Frame(urwid.ListBox(self.content))
         self.footer = urwid.Edit("", "")
         self.frame.set_footer(self.footer)
+        self.doc = HelpList(self.frame, self.state)
+        self.init_signals()
         self.position = 0
         self.full_list = False
         #self.fill_list()
@@ -242,6 +243,7 @@ class MainList(object):
         command(self.more,                  "m", "main", "augment the priority of the current item")
         command(self.less,                  "l", "main", "lower the priority of the current item")
         command(self.toggle_show_full_list, "h", "main", "toggle displaying the completed items")
+        command(self.doc.fill_list,         "?", "main", "display help")
 
         command(self.fill_list,             "update", "main", None)
         command(self.get_user_input_main,   "enter", "user_input_main", None)
