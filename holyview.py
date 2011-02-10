@@ -83,12 +83,12 @@ class State(object):
         return self.state
 
 class Item():
-    def __init__(self, name, finished=False, progress=None, difficulty=0, consequence=0, creation_date=date.today(), completion_date=None):
+    def __init__(self, name, finished=False, progress=None, urgence=0, importance=0, creation_date=date.today(), completion_date=None):
         self.name = name
         self.finished = finished
         self.progress = progress if progress else []
-        self.difficulty = difficulty
-        self.consequence = consequence
+        self.urgence = urgence
+        self.importance = importance
         self.creation_date = creation_date
         self.completion_date = completion_date
 
@@ -105,12 +105,12 @@ class Item():
         self.progress.append(date.today())
 
     def more(self):
-        self.consequence += 1
+        self.importance += 1
 
     def less(self):
-        self.consequence -= 1
-        if self.consequence < 0:
-            self.consequence = 0
+        self.importance -= 1
+        if self.importance < 0:
+            self.importance = 0
 
 class ItemList():
     def __init__(self):
@@ -121,7 +121,7 @@ class ItemList():
         self.save()
 
     def get(self, full=False):
-        self.items = sorted(self.items, key=lambda x: -x.consequence)
+        self.items = sorted(self.items, key=lambda x: -x.importance)
         if not full:
             return filter(lambda x: not x.finished, self.items)
         else:
@@ -147,7 +147,7 @@ class ItemWidget(urwid.Text):
 
     def update(self):
         text = []
-        text.append('%i ' % self.item.consequence)
+        text.append('%i/%s ' % (self.item.importance, self.item.urgence))
         if not self.item.finished:
             text.append(self.item.name)
         else:
