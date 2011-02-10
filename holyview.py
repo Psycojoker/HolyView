@@ -104,10 +104,10 @@ class Item():
         D('"%s" got a new point' % self.name.encode("Utf-8"))
         self.progress.append(date.today())
 
-    def more(self):
+    def more_importance(self):
         self.importance += 1
 
-    def less(self):
+    def less_importance(self):
         self.importance -= 1
         if self.importance < 0:
             self.importance = 0
@@ -244,8 +244,8 @@ class MainList(object):
         command(self.toggle_current_item,   " ", "main", "toggle the current item (between finished and unfinished)")
         command(self.add_point,             "+", "main", "add a point the current item")
         command(self.remove_point,          "-", "main", "remove a point the current item")
-        command(self.more,                  "m", "main", "augment the priority of the current item")
-        command(self.less,                  "l", "main", "lower the priority of the current item")
+        command(self.more_importance,       "m", "main", "augment the importance of the current item")
+        command(self.less_importance,       "l", "main", "lower the importance of the current item")
         command(self.toggle_show_full_list, "h", "main", "toggle displaying the completed items")
         command(self.doc.fill_list,         "?", "main", "display help")
 
@@ -310,15 +310,15 @@ class MainList(object):
 
     @follow_item
     @update_main
-    def more(self):
-        self._get_current_item().more()
+    def more_importance(self):
+        self._get_current_item().more_importance()
         self._get_current_widget().update()
         return self._get_current_item()
 
     @follow_item
     @update_main
-    def less(self):
-        self._get_current_item().less()
+    def less_importance(self):
+        self._get_current_item().less_importance()
         self._get_current_widget().update()
         return self._get_current_item()
 
