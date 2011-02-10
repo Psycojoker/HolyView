@@ -104,6 +104,14 @@ class Item():
         D('"%s" got a new point' % self.name.encode("Utf-8"))
         self.progress.append(date.today())
 
+    def more_urgence(self):
+        self.urgence += 1
+
+    def less_urgence(self):
+        self.urgence -= 1
+        if self.urgence < 0:
+            self.urgence = 0
+
     def more_importance(self):
         self.importance += 1
 
@@ -244,6 +252,8 @@ class MainList(object):
         command(self.toggle_current_item,   " ", "main", "toggle the current item (between finished and unfinished)")
         command(self.add_point,             "+", "main", "add a point the current item")
         command(self.remove_point,          "-", "main", "remove a point the current item")
+        command(self.more_urgence,          "M", "main", "augment the urgence of the current item")
+        command(self.less_urgence,          "L", "main", "lower the urgence of the current item")
         command(self.more_importance,       "m", "main", "augment the importance of the current item")
         command(self.less_importance,       "l", "main", "lower the importance of the current item")
         command(self.toggle_show_full_list, "h", "main", "toggle displaying the completed items")
@@ -307,6 +317,20 @@ class MainList(object):
     def add_point(self):
         self._get_current_item().add_point()
         self._get_current_widget().update()
+
+    @follow_item
+    @update_main
+    def more_urgence(self):
+        self._get_current_item().more_urgence()
+        self._get_current_widget().update()
+        return self._get_current_item()
+
+    @follow_item
+    @update_main
+    def less_urgence(self):
+        self._get_current_item().less_urgence()
+        self._get_current_widget().update()
+        return self._get_current_item()
 
     @follow_item
     @update_main
