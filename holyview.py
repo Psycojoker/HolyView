@@ -128,8 +128,11 @@ class ItemList():
         "Always save on death to be sure not to lose datas"
         self.save()
 
-    def get(self, full=False):
-        self.items = sorted(self.items, key=lambda x: -x.importance)
+    def get(self, full=False, urgence=False):
+        if urgence:
+            self.items = sorted(self.items, key=lambda x: -x.urgence)
+        else:
+            self.items = sorted(self.items, key=lambda x: -x.importance)
         if not full:
             return filter(lambda x: not x.finished, self.items)
         else:
@@ -212,6 +215,7 @@ class MainList(object):
         self.init_signals()
         self.position = 0
         self.full_list = False
+        self.urgence = False
         #self.fill_list()
         #self.show_key = urwid.Text("MaList 0.1", wrap='clip')
         #self.frame.set_header(urwid.AttrMap(self.show_key, 'header'))
@@ -233,7 +237,7 @@ class MainList(object):
         urwid.MainLoop(self.frame, palette, input_filter=self.show_all_input, unhandled_input=self.manage_input).run()
 
     def fill_list(self):
-        self.content = [ItemWidget(i) for i in self.item_list.get(self.full_list)]
+        self.content = [ItemWidget(i) for i in self.item_list.get(self.full_list, self.urgence)]
         D(self.item_list.get())
         self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame.set_body(urwid.ListBox(self.content))
@@ -257,6 +261,7 @@ class MainList(object):
         command(self.more_importance,       "m", "main", "augment the importance of the current item")
         command(self.less_importance,       "l", "main", "lower the importance of the current item")
         command(self.toggle_show_full_list, "h", "main", "toggle displaying the completed items")
+        command(self.toggle_urgence_importance, "i", "main", "toggle displaying the completed items")
         command(self.doc.fill_list,         "?", "main", "display help")
 
         command(self.fill_list,             "update", "main", None)
@@ -291,6 +296,10 @@ class MainList(object):
         self.item_list.remove(self._get_current_item())
         if self.position == len(self.content) - 1:
             self.position = len(self.content) - 2
+
+    @update_main
+    def toggle_urgence_importance(self):
+        self.urgence = not self.urgence
 
     @update_main
     def toggle_show_full_list(self):
