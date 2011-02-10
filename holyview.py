@@ -24,11 +24,11 @@ def command(func, key, mode, doc):
 
 def get_documentations():
     for i in commands.keys():
+        yield ""
         yield "%s" % i
         yield "=" * len(i)
         for a, b in commands[i]:
             yield "%s : %s" % (a, b)
-        yield ""
 
 def have_input(func):
     def _have_input(*args):
