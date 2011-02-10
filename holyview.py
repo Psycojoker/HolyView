@@ -202,6 +202,23 @@ class HelpList(object):
             self.position -= 1
             self.frame.get_body().set_focus(self.position)
 
+class GridView(object):
+    def __init__(self, frame, state, item_list):
+        self.frame = frame
+        self.state = state
+        self.item_list = item_list
+        self.mid_importance = max(self.item_list.get(), key=lambda x: x.importance).importance / 2
+        self.mid_urgence = max(self.item_list.get(), key=lambda x: x.urgence).urgence / 2
+
+    def fill_list(self):
+        c1 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important and urgent items"), 'center', wrap="any"), 'header')] + [ItemWidget(x) for x in self.item_list.get() if x.importance > self.mid_importance and x.urgence > self.mid_urgence]))
+        c2 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important items"), 'center', wrap="clip"), 'header')] + [ItemWidget(x) for x in self.item_list.get() if x.importance > self.mid_importance and x.urgence <= self.mid_urgence]))
+        c3 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Urgent items"), 'center', wrap="clip"), 'header')] + [ItemWidget(x) for x in self.item_list.get() if x.importance <= self.mid_importance and x.urgence > self.mid_urgence]))
+        c4 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Non urgent and non important items"), 'center'), 'header')] + [ItemWidget(x) for x in self.item_list.get() if x.importance <= self.mid_importance and x.urgence <= self.mid_urgence]))
+        a = urwid.Columns((c1, c2))
+        b = urwid.Columns((c3, c4))
+        self.frame.set_body(urwid.Pile((a, b)))
+
 class MainList(object):
     def __init__(self):
         self.item_list = ItemList()
@@ -213,6 +230,7 @@ class MainList(object):
         self.footer = urwid.Edit("", "")
         self.frame.set_footer(self.footer)
         self.doc = HelpList(self.frame, self.state)
+        self.grid = GridView(self.frame, self.state, self.item_list)
         self.init_signals()
         self.position = 0
         self.full_list = False
@@ -264,6 +282,7 @@ class MainList(object):
         command(self.toggle_show_full_list,     "h", "main", "toggle displaying the completed items")
         command(self.toggle_urgence_importance, "i", "main", "toggle displaying the completed items")
         command(self.doc.fill_list,             "?", "main", "display help")
+        command(self.grid.fill_list,            "G", "main", "grid view")
 
         command(self.fill_list,                  "update", "main", None)
         command(self.get_user_input_main,        "enter", "user_input_main", None)
