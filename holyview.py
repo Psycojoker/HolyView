@@ -234,8 +234,10 @@ class GridView(object):
         #command(self.add_task,                  "a", "grid", "add a new item")
         command(self.go_down,                   "j" ,"grid", "move the cursor down")
         command(self.go_up,                     "k", "grid", "move the cursor up")
-        #command(self.go_down,                   "down" ,"grid", "move the cursor down")
-        #command(self.go_up,                     "up", "grid", "move the cursor up")
+        command(self.go_down_in_grid,           "J" ,"grid", "select the lower grid")
+        command(self.go_up_in_grid,             "K", "grid", "select the upper grid")
+        command(self.go_right_in_grid,          "L" ,"grid", "select the right grid")
+        command(self.go_left_in_grid,           "H", "grid", "select the left grid")
         #command(self.remove_current_item,       "d", "grid", "remove the current item")
         #command(self.rename_current_item,       "r", "grid", "rename the current item")
         #command(self.toggle_current_item,       " ", "grid", "toggle the current item (between finished and unfinished)")
@@ -252,6 +254,58 @@ class GridView(object):
 
         command(self.fill_list,                  "update", "grid", None)
         #command(self.get_user_input_main,        "enter", "user_input_main", None)
+
+    def go_down_in_grid(self):
+        if self.current_grid in ("3", "4"):
+            return
+
+        self.frame.get_body().set_focus(1)
+        if self.current_grid == "1":
+            self.current_grid = "3"
+            self.frame.get_body().get_focus().set_focus(0)
+        elif self.current_grid == "2":
+            self.current_grid = "4"
+            self.frame.get_body().get_focus().set_focus(1)
+        getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+
+    def go_up_in_grid(self):
+        if self.current_grid in ("1", "2"):
+            return
+
+        self.frame.get_body().set_focus(0)
+        if self.current_grid == "3":
+            self.current_grid = "1"
+            self.frame.get_body().get_focus().set_focus(0)
+        elif self.current_grid == "4":
+            self.current_grid = "2"
+            self.frame.get_body().get_focus().set_focus(1)
+        getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+
+    def go_right_in_grid(self):
+        if self.current_grid in ("2", "4"):
+            return
+
+        self.frame.get_body().get_focus().set_focus(1)
+        if self.current_grid == "1":
+            self.current_grid = "2"
+            self.frame.get_body().set_focus(0)
+        elif self.current_grid == "3":
+            self.current_grid = "4"
+            self.frame.get_body().set_focus(1)
+        getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+
+    def go_left_in_grid(self):
+        if self.current_grid in ("1", "3"):
+            return
+
+        self.frame.get_body().get_focus().set_focus(0)
+        if self.current_grid == "2":
+            self.current_grid = "1"
+            self.frame.get_body().set_focus(0)
+        elif self.current_grid == "4":
+            self.current_grid = "3"
+            self.frame.get_body().set_focus(1)
+        getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
 
     def go_down(self):
         if getattr(self, "position_%s" % self.current_grid) < (len(getattr(self, "c%s" % self.current_grid).body) - 1):
