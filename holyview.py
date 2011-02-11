@@ -473,8 +473,8 @@ class MainList(object):
         command(self.less_urgence,              "U", "main", "lower the urgence of the current item")
         command(self.more_importance,           "i", "main", "augment the importance of the current item")
         command(self.less_importance,           "I", "main", "lower the importance of the current item")
-        command(self.toggle_show_full_list,     "h", "main", "toggle displaying the completed items")
-        command(self.toggle_urgence_importance, "i", "main", "toggle displaying the completed items")
+        command(self.toggle_show_full_list,     "t", "main", "toggle displaying the completed items")
+        command(self.toggle_urgence_importance, "y", "main", "toggle displaying the completed items")
         command(self.doc.fill_list,             "?", "main", "display help")
         command(self.grid.fill_list,            "G", "main", "grid view")
 
