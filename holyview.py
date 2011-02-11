@@ -211,6 +211,7 @@ class HelpList(object):
             self.frame.get_body().set_focus(self.position)
 
 class GridView(object):
+    focus = {"1" : (0, 0), "2" : (0, 1), "3" : (1, 0), "4" : (1, 1)}
     def __init__(self, frame, state, item_list):
         self.frame = frame
         self.state = state
@@ -236,9 +237,8 @@ class GridView(object):
         getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
 
         # hum, this is binary value - 1, maybe I can optimise playing with that
-        focus = {"1" : (0, 0), "2" : (0, 1), "3" : (1, 0), "4" : (1, 1)}
-        self.frame.get_body().set_focus(focus[self.current_grid][0])
-        self.frame.get_body().get_focus().set_focus(focus[self.current_grid][1])
+        self.frame.get_body().set_focus(self.focus[self.current_grid][0])
+        self.frame.get_body().get_focus().set_focus(self.focus[self.current_grid][1])
 
     def init_signals(self):
         command(self.exit,                      "q", "grid", "quit holyview")
