@@ -290,7 +290,7 @@ class GridView(object):
         command(self.go_up_in_grid,             "K", "grid", "select the upper grid")
         command(self.go_right_in_grid,          "L" ,"grid", "select the right grid")
         command(self.go_left_in_grid,           "H", "grid", "select the left grid")
-        #command(self.remove_current_item,       "d", "grid", "remove the current item")
+        command(self.remove_current_item,       "d", "grid", "remove the current item")
         #command(self.rename_current_item,       "r", "grid", "rename the current item")
         command(self.toggle_current_item,       " ", "grid", "toggle the current item (between finished and unfinished)")
         command(self.add_point,                 "+", "grid", "add a point the current item")
@@ -312,6 +312,12 @@ class GridView(object):
 
     def add_task(self):
         self._wait_for_input("New item: ", self.get_add_task)
+
+    @update_grid
+    def remove_current_item(self):
+        self.item_list.remove(self._get_current_item())
+        if getattr(self, "position_%s" % self.current_grid) == (len(getattr(self, "c%s" % self.current_grid).body) - 1):
+            setattr(self, "position_%s" % self.current_grid, len(getattr(self, "c%s" % self.current_grid).body) - 2)
 
     @disconnect
     @have_input
