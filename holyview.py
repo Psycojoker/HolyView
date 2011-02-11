@@ -279,7 +279,7 @@ class GridView(object):
     def init_signals(self):
         command(self.exit,                      "q", "grid", "quit holyview")
         self.back_to_main_list = lambda : louie.send("update_main")
-        command(self.back_to_main_list,         "G", "grid", "go back to the main list")
+        command(self.back_to_main_list,         "G", "grid", "go to list view")
         #command(self.add_task,                  "a", "grid", "add a new item")
         command(self.go_down,                   "j" ,"grid", "move the cursor down")
         command(self.go_up,                     "k", "grid", "move the cursor up")
@@ -303,7 +303,6 @@ class GridView(object):
         #command(self.toggle_show_full_list,     "h", "grid", "toggle displaying the completed items")
         #command(self.toggle_urgence_importance, "i", "grid", "toggle displaying the completed items")
         command(self.doc.fill_list,             "?", "grid", "display help")
-        #command(self.grid.fill_list,            "G", "grid", "grid view")
 
         command(self.fill_list,                  "update", "grid", None)
         #command(self.get_user_input_main,        "enter", "user_input_main", None)
