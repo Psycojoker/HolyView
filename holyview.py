@@ -610,6 +610,13 @@ class MainList(object):
     def rename_current_item(self):
         self._wait_for_input("New description: ", self.get_rename_current_item)
 
+    @disconnect
+    @have_input
+    @update_main
+    def get_rename_current_item(self):
+        self._get_current_item().name = self.user_input
+        self._get_current_widget().update()
+
     @update_main
     def remove_point(self):
         self._get_current_item().remove_point()
@@ -651,13 +658,6 @@ class MainList(object):
     @update_main
     def toggle_current_item(self):
         self._get_current_item().toggle()
-        self._get_current_widget().update()
-
-    @disconnect
-    @have_input
-    @update_main
-    def get_rename_current_item(self):
-        self._get_current_item().name = self.user_input
         self._get_current_widget().update()
 
     def add_task(self):
