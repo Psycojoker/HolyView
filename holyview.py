@@ -24,11 +24,10 @@ def command(func, key, mode, doc):
 
 def get_documentations():
     for i in commands.keys():
-        yield "%s" % i
-        yield "=" * len(i)
+        yield urwid.AttrMap(urwid.Text(('header', "  %s" % i)), "header")
         for a, b in commands[i]:
-            yield "%s : %s" % (a, b)
-        yield ""
+            yield urwid.Text("%s : %s" % (a, b))
+        yield urwid.Divider(" ")
 
 def have_input(func):
     def _have_input(*args):
@@ -229,7 +228,7 @@ class HelpList(object):
         louie.send("update_%s" % self.previous_state)
 
     def fill_list(self):
-        self.content = [urwid.Text(i) for i in get_documentations()]
+        self.content = [i for i in get_documentations()]
         self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame.set_body(urwid.ListBox(self.content))
         if self.state.get() != "help":
