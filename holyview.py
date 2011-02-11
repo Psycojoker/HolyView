@@ -296,6 +296,10 @@ class GridView(object):
         command(self.less_urgence,              "U", "grid", "lower the urgence of the current item")
         command(self.more_importance,           "i", "grid", "augment the importance of the current item")
         command(self.less_importance,           "I", "grid", "lower the importance of the current item")
+        command(self.increase_mid_urgence,      "p", "grid", "increase the value of the mid urgence")
+        command(self.decrease_mid_urgence,     "P", "grid", "decrease the value of the mid urgence")
+        command(self.increase_mid_importance,   "o", "grid", "increase the value of the mid importance")
+        command(self.decrease_mid_importance,  "O", "grid", "decrease the value of the mid importance")
         #command(self.toggle_show_full_list,     "h", "grid", "toggle displaying the completed items")
         #command(self.toggle_urgence_importance, "i", "grid", "toggle displaying the completed items")
         command(self.doc.fill_list,             "?", "grid", "display help")
@@ -303,6 +307,22 @@ class GridView(object):
 
         command(self.fill_list,                  "update", "grid", None)
         #command(self.get_user_input_main,        "enter", "user_input_main", None)
+
+    @update_grid
+    def increase_mid_urgence(self):
+        self.mid_urgence = self.mid_urgence + 1 if self.mid_urgence < max(self.item_list.get(), key=lambda x: x.urgence).urgence else max(self.item_list.get(), key=lambda x: x.urgence).urgence
+
+    @update_grid
+    def decrease_mid_urgence(self):
+        self.mid_urgence = self.mid_urgence - 1 if self.mid_urgence >= 1 else 0
+
+    @update_grid
+    def increase_mid_importance(self):
+        self.mid_importance = self.mid_importance + 1 if self.mid_importance < max(self.item_list.get(), key=lambda x: x.importance).importance else max(self.item_list.get(), key=lambda x: x.importance).importance
+
+    @update_grid
+    def decrease_mid_importance(self):
+        self.mid_importance = self.mid_importance - 1 if self.mid_importance >= 1 else 0
 
     @update_grid
     def remove_point(self):
