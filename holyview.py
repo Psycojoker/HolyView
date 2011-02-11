@@ -260,12 +260,13 @@ class GridView(object):
         self.position_3 = 1
         self.position_4 = 1
         self.current_grid = "1"
+        self.full_list = False
 
     def fill_list(self):
-        self.c1 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important (>%s) and urgent (>%s) tems" % (self.mid_importance, self.mid_urgence)), 'center', wrap="any"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get() if x.importance > self.mid_importance and x.urgence > self.mid_urgence]))
-        self.c2 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important (>%s) items" % self.mid_importance), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get() if x.importance > self.mid_importance and x.urgence <= self.mid_urgence]))
-        self.c3 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Urgent (>%s) items" % self.mid_urgence), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get() if x.importance <= self.mid_importance and x.urgence > self.mid_urgence]))
-        self.c4 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Non urgent (<%s) and non important (<%s) items" % (self.mid_importance, self.mid_urgence)), 'center'), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get() if x.importance <= self.mid_importance and x.urgence <= self.mid_urgence]))
+        self.c1 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important (>%s) and urgent (>%s) tems" % (self.mid_importance, self.mid_urgence)), 'center', wrap="any"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list) if x.importance > self.mid_importance and x.urgence > self.mid_urgence]))
+        self.c2 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important (>%s) items" % self.mid_importance), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list) if x.importance > self.mid_importance and x.urgence <= self.mid_urgence]))
+        self.c3 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Urgent (>%s) items" % self.mid_urgence), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list) if x.importance <= self.mid_importance and x.urgence > self.mid_urgence]))
+        self.c4 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Non urgent (<%s) and non important (<%s) items" % (self.mid_importance, self.mid_urgence)), 'center'), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list) if x.importance <= self.mid_importance and x.urgence <= self.mid_urgence]))
         a = urwid.Columns((self.c1, self.c2))
         b = urwid.Columns((self.c3, self.c4))
         self.frame.set_body(urwid.Pile((a, b)))
@@ -300,12 +301,16 @@ class GridView(object):
         command(self.decrease_mid_urgence,     "P", "grid", "decrease the value of the mid urgence")
         command(self.increase_mid_importance,   "o", "grid", "increase the value of the mid importance")
         command(self.decrease_mid_importance,  "O", "grid", "decrease the value of the mid importance")
-        #command(self.toggle_show_full_list,     "h", "grid", "toggle displaying the completed items")
+        command(self.toggle_show_full_list,     "t", "grid", "toggle displaying the completed items")
         #command(self.toggle_urgence_importance, "i", "grid", "toggle displaying the completed items")
         command(self.doc.fill_list,             "?", "grid", "display help")
 
         command(self.fill_list,                  "update", "grid", None)
         #command(self.get_user_input_main,        "enter", "user_input_main", None)
+
+    @update_grid
+    def toggle_show_full_list(self):
+        self.full_list = not self.full_list
 
     @update_grid
     def increase_mid_urgence(self):
