@@ -219,7 +219,7 @@ class HelpList(object):
         self.previous_state = None
 
     def init_signals(self):
-        command(self.exit,                  "q", "help", "return to main view")
+        command(self.exit,                  "q", "help", "return to previous view")
         command(self.go_down,               "j" ,"help", "move the cursor down")
         command(self.go_up,                 "k", "help", "move the cursor up")
         command(self.go_down,               "down" ,"help", "move the cursor down")
