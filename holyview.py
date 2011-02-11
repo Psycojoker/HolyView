@@ -262,10 +262,10 @@ class GridView(object):
         self.current_grid = "1"
 
     def fill_list(self):
-        self.c1 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important and urgent items"), 'center', wrap="any"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get() if x.importance > self.mid_importance and x.urgence > self.mid_urgence]))
-        self.c2 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important items"), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get() if x.importance > self.mid_importance and x.urgence <= self.mid_urgence]))
-        self.c3 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Urgent items"), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get() if x.importance <= self.mid_importance and x.urgence > self.mid_urgence]))
-        self.c4 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Non urgent and non important items"), 'center'), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get() if x.importance <= self.mid_importance and x.urgence <= self.mid_urgence]))
+        self.c1 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important (>%s) and urgent (>%s) tems" % (self.mid_importance, self.mid_urgence)), 'center', wrap="any"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get() if x.importance > self.mid_importance and x.urgence > self.mid_urgence]))
+        self.c2 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important (>%s) items" % self.mid_importance), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get() if x.importance > self.mid_importance and x.urgence <= self.mid_urgence]))
+        self.c3 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Urgent (>%s) items" % self.mid_urgence), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get() if x.importance <= self.mid_importance and x.urgence > self.mid_urgence]))
+        self.c4 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Non urgent (<%s) and non important (<%s) items" % (self.mid_importance, self.mid_urgence)), 'center'), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get() if x.importance <= self.mid_importance and x.urgence <= self.mid_urgence]))
         a = urwid.Columns((self.c1, self.c2))
         b = urwid.Columns((self.c3, self.c4))
         self.frame.set_body(urwid.Pile((a, b)))
