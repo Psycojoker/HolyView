@@ -216,6 +216,7 @@ class HelpList(object):
         self.state = state
         self.position = 0
         self.init_signals()
+        self.previous_state = None
 
     def init_signals(self):
         command(self.exit,                  "q", "help", "return to main view")
@@ -225,12 +226,14 @@ class HelpList(object):
         command(self.go_up,                 "up", "help", "move the cursor up")
 
     def exit(self):
-        louie.send("update_main")
+        louie.send("update_%s" % self.previous_state)
 
     def fill_list(self):
         self.content = [urwid.Text(i) for i in get_documentations()]
         self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame.set_body(urwid.ListBox(self.content))
+        if self.state.get() != "help":
+            self.previous_state = self.state.get()
         self.state.set_state("help")
 
     def go_down(self):
@@ -245,9 +248,10 @@ class HelpList(object):
 
 class GridView(object):
     focus = {"1" : (0, 0), "2" : (0, 1), "3" : (1, 0), "4" : (1, 1)}
-    def __init__(self, frame, state, item_list):
+    def __init__(self, frame, state, item_list, doc):
         self.frame = frame
         self.state = state
+        self.doc = doc
         self.item_list = item_list
         self.mid_importance = max(self.item_list.get(), key=lambda x: x.importance).importance / 2
         self.mid_urgence = max(self.item_list.get(), key=lambda x: x.urgence).urgence / 2
@@ -295,7 +299,7 @@ class GridView(object):
         command(self.less_importance,           "I", "grid", "lower the importance of the current item")
         #command(self.toggle_show_full_list,     "h", "grid", "toggle displaying the completed items")
         #command(self.toggle_urgence_importance, "i", "grid", "toggle displaying the completed items")
-        #command(self.doc.fill_list,             "?", "grid", "display help")
+        command(self.doc.fill_list,             "?", "grid", "display help")
         #command(self.grid.fill_list,            "G", "grid", "grid view")
 
         command(self.fill_list,                  "update", "grid", None)
@@ -421,7 +425,7 @@ class MainList(object):
         self.footer = urwid.Edit("", "")
         self.frame.set_footer(self.footer)
         self.doc = HelpList(self.frame, self.state)
-        self.grid = GridView(self.frame, self.state, self.item_list)
+        self.grid = GridView(self.frame, self.state, self.item_list, self.doc)
         self.init_signals()
         self.position = 0
         self.full_list = False
