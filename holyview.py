@@ -289,7 +289,7 @@ class GridView(object):
         command(self.go_left_in_grid,           "H", "grid", "select the left grid")
         #command(self.remove_current_item,       "d", "grid", "remove the current item")
         #command(self.rename_current_item,       "r", "grid", "rename the current item")
-        #command(self.toggle_current_item,       " ", "grid", "toggle the current item (between finished and unfinished)")
+        command(self.toggle_current_item,       " ", "grid", "toggle the current item (between finished and unfinished)")
         command(self.add_point,                 "+", "grid", "add a point the current item")
         command(self.remove_point,              "-", "grid", "remove a point the current item")
         command(self.more_urgence,              "u", "grid", "augment the urgence of the current item")
@@ -347,6 +347,11 @@ class GridView(object):
 
     def _get_current_item(self):
         return self.frame.get_body().get_focus().get_focus().get_focus()[0].original_widget.item
+
+    @update_grid
+    def toggle_current_item(self):
+        self._get_current_item().toggle()
+        self._get_current_widget().update()
 
     def go_down_in_grid(self):
         if self.current_grid in ("3", "4"):
