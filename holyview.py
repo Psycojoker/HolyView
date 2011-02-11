@@ -37,6 +37,14 @@ def have_input(func):
             func(*args)
     return _have_input
 
+def update_grid(func):
+    def _update_grid(*args):
+        to_return = func(*args)
+        louie.send("update_grid")
+        return to_return
+
+    return _update_grid
+
 def update_main(func):
     def _update_main(*args):
         to_return = func(*args)
@@ -227,6 +235,11 @@ class GridView(object):
         self.state.set_state("grid")
         getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
 
+        # hum, this is binary value - 1, maybe I can optimise playing with that
+        focus = {"1" : (0, 0), "2" : (0, 1), "3" : (1, 0), "4" : (1, 1)}
+        self.frame.get_body().set_focus(focus[self.current_grid][0])
+        self.frame.get_body().get_focus().set_focus(focus[self.current_grid][1])
+
     def init_signals(self):
         command(self.exit,                      "q", "grid", "quit holyview")
         self.back_to_main_list = lambda : louie.send("update_main")
@@ -241,8 +254,8 @@ class GridView(object):
         #command(self.remove_current_item,       "d", "grid", "remove the current item")
         #command(self.rename_current_item,       "r", "grid", "rename the current item")
         #command(self.toggle_current_item,       " ", "grid", "toggle the current item (between finished and unfinished)")
-        #command(self.add_point,                 "+", "grid", "add a point the current item")
-        #command(self.remove_point,              "-", "grid", "remove a point the current item")
+        command(self.add_point,                 "+", "grid", "add a point the current item")
+        command(self.remove_point,              "-", "grid", "remove a point the current item")
         #command(self.more_urgence,              "M", "grid", "augment the urgence of the current item")
         #command(self.less_urgence,              "L", "grid", "lower the urgence of the current item")
         #command(self.more_importance,           "m", "grid", "augment the importance of the current item")
@@ -254,6 +267,22 @@ class GridView(object):
 
         command(self.fill_list,                  "update", "grid", None)
         #command(self.get_user_input_main,        "enter", "user_input_main", None)
+
+    @update_grid
+    def remove_point(self):
+        self._get_current_item().remove_point()
+        self._get_current_widget().update()
+
+    @update_grid
+    def add_point(self):
+        self._get_current_item().add_point()
+        self._get_current_widget().update()
+
+    def _get_current_widget(self):
+        return self.frame.get_body().get_focus().get_focus().get_focus()[0].original_widget
+
+    def _get_current_item(self):
+        return self.frame.get_body().get_focus().get_focus().get_focus()[0].original_widget.item
 
     def go_down_in_grid(self):
         if self.current_grid in ("3", "4"):
