@@ -262,6 +262,7 @@ class GridView(object):
         self.current_grid = "1"
         self.full_list = False
         self.urgence = False
+        self.footer = urwid.Filler(urwid.Edit("", ""))
 
     def fill_list(self):
         self.c1 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important (>%s) and urgent (>%s) tems" % (self.mid_importance, self.mid_urgence)), 'center', wrap="any"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgence) if x.importance > self.mid_importance and x.urgence > self.mid_urgence]))
@@ -270,7 +271,7 @@ class GridView(object):
         self.c4 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Non urgent (<%s) and non important (<%s) items" % (self.mid_importance, self.mid_urgence)), 'center'), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgence) if x.importance <= self.mid_importance and x.urgence <= self.mid_urgence]))
         a = urwid.Columns((self.c1, self.c2))
         b = urwid.Columns((self.c3, self.c4))
-        self.frame.set_body(urwid.Pile((a, b)))
+        self.frame.set_body(urwid.Pile((a, b, ('fixed', 1, self.footer))))
         self.state.set_state("grid")
         getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
 
@@ -282,7 +283,7 @@ class GridView(object):
         command(self.exit,                      "q", "grid", "quit holyview")
         self.back_to_main_list = lambda : louie.send("update_main")
         command(self.back_to_main_list,         "G", "grid", "go to list view")
-        #command(self.add_task,                  "a", "grid", "add a new item")
+        command(self.add_task,                  "a", "grid", "add a new item")
         command(self.go_down,                   "j" ,"grid", "move the cursor down")
         command(self.go_up,                     "k", "grid", "move the cursor up")
         command(self.go_down_in_grid,           "J" ,"grid", "select the lower grid")
@@ -307,7 +308,31 @@ class GridView(object):
         command(self.doc.fill_list,             "?", "grid", "display help")
 
         command(self.fill_list,                  "update", "grid", None)
-        #command(self.get_user_input_main,        "enter", "user_input_main", None)
+        command(self.get_user_input_grid,        "enter", "user_input_grid", None)
+
+    def add_task(self):
+        self._wait_for_input("New item: ", self.get_add_task)
+
+    @disconnect
+    @have_input
+    @update_grid
+    def get_add_task(self):
+        self.item_list.add(self.user_input)
+
+    def get_user_input_grid(self):
+        self.user_input = self.frame.get_body().get_focus().body.edit_text
+        self.frame.get_body().get_focus().body.edit_text = ""
+        self.frame.get_body().get_focus().body.set_caption("")
+        self.frame.get_body().set_focus(self.focus[self.current_grid][0])
+        self.frame.get_body().get_focus().set_focus(self.focus[self.current_grid][1])
+        louie.send("set state", None, "grid")
+        louie.send("user_input_done")
+
+    def _wait_for_input(self, text, callback):
+        self.frame.get_body().set_focus(2)
+        self.frame.get_body().get_focus().body.set_caption(text)
+        louie.send("set state", None, "user_input_grid")
+        louie.connect(callback, "user_input_done")
 
     @follow_item_in_grid
     @update_grid
@@ -453,7 +478,7 @@ class MainList(object):
     def __init__(self):
         self.item_list = ItemList()
         self.frame = None
-        self.state = State(("main", "user_input_main", "help", "grid"), "main")
+        self.state = State(("main", "user_input_main", "help", "grid", "user_input_grid"), "main")
         self.content = [ItemWidget(i) for i in self.item_list.get()]
         self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame = urwid.Frame(urwid.ListBox(self.content))
