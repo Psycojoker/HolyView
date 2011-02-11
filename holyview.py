@@ -53,6 +53,39 @@ def update_main(func):
 
     return _update_main
 
+def follow_item_in_grid(func):
+    def _follow_item(*args):
+        item = func(*args)
+        self = args[0]
+
+        a = 1
+        found = False
+        for i in getattr(self, "c%s" % self.current_grid).body[1:]:
+            if i.original_widget.item == item:
+                found = True
+                break
+            a += 1
+        if not found:
+            for j in [str(j) for j in range(1, 5) if str(j) != self.current_grid]:
+                a = 1
+                for i in getattr(self, "c%s" % j).body[1:]:
+                    if i.original_widget.item == item:
+                        found = True
+                        break
+                    a += 1
+                if found:
+                    self.current_grid = j
+                    break
+
+        self.frame.get_body().set_focus(self.focus[self.current_grid][0])
+        self.frame.get_body().get_focus().set_focus(self.focus[self.current_grid][1])
+        setattr(self, "position_%s" % self.current_grid, a)
+        getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+
+        return item
+
+    return _follow_item
+
 def follow_item(func):
     def _follow_item(*args):
         item = func(*args)
@@ -258,8 +291,8 @@ class GridView(object):
         command(self.remove_point,              "-", "grid", "remove a point the current item")
         #command(self.more_urgence,              "M", "grid", "augment the urgence of the current item")
         #command(self.less_urgence,              "L", "grid", "lower the urgence of the current item")
-        #command(self.more_importance,           "m", "grid", "augment the importance of the current item")
-        #command(self.less_importance,           "l", "grid", "lower the importance of the current item")
+        command(self.more_importance,           "m", "grid", "augment the importance of the current item")
+        command(self.less_importance,           "l", "grid", "lower the importance of the current item")
         #command(self.toggle_show_full_list,     "h", "grid", "toggle displaying the completed items")
         #command(self.toggle_urgence_importance, "i", "grid", "toggle displaying the completed items")
         #command(self.doc.fill_list,             "?", "grid", "display help")
@@ -277,6 +310,20 @@ class GridView(object):
     def add_point(self):
         self._get_current_item().add_point()
         self._get_current_widget().update()
+
+    @follow_item_in_grid
+    @update_grid
+    def more_importance(self):
+        self._get_current_item().more_importance()
+        self._get_current_widget().update()
+        return self._get_current_item()
+
+    @follow_item_in_grid
+    @update_grid
+    def less_importance(self):
+        self._get_current_item().less_importance()
+        self._get_current_widget().update()
+        return self._get_current_item()
 
     def _get_current_widget(self):
         return self.frame.get_body().get_focus().get_focus().get_focus()[0].original_widget
