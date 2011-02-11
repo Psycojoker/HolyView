@@ -289,8 +289,8 @@ class GridView(object):
         #command(self.toggle_current_item,       " ", "grid", "toggle the current item (between finished and unfinished)")
         command(self.add_point,                 "+", "grid", "add a point the current item")
         command(self.remove_point,              "-", "grid", "remove a point the current item")
-        #command(self.more_urgence,              "M", "grid", "augment the urgence of the current item")
-        #command(self.less_urgence,              "L", "grid", "lower the urgence of the current item")
+        command(self.more_urgence,              "u", "grid", "augment the urgence of the current item")
+        command(self.less_urgence,              "U", "grid", "lower the urgence of the current item")
         command(self.more_importance,           "m", "grid", "augment the importance of the current item")
         command(self.less_importance,           "l", "grid", "lower the importance of the current item")
         #command(self.toggle_show_full_list,     "h", "grid", "toggle displaying the completed items")
@@ -322,6 +322,20 @@ class GridView(object):
     @update_grid
     def less_importance(self):
         self._get_current_item().less_importance()
+        self._get_current_widget().update()
+        return self._get_current_item()
+
+    @follow_item_in_grid
+    @update_grid
+    def more_urgence(self):
+        self._get_current_item().more_urgence()
+        self._get_current_widget().update()
+        return self._get_current_item()
+
+    @follow_item_in_grid
+    @update_grid
+    def less_urgence(self):
+        self._get_current_item().less_urgence()
         self._get_current_widget().update()
         return self._get_current_item()
 
