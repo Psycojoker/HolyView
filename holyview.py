@@ -24,11 +24,10 @@ def command(func, key, mode, doc):
 
 def get_documentations():
     for i in commands.keys():
-        yield ""
-        yield "%s" % i
-        yield "=" * len(i)
+        yield urwid.AttrMap(urwid.Text(('header', "  %s" % i)), "header")
         for a, b in commands[i]:
-            yield "%s : %s" % (a, b)
+            yield urwid.Text("%s : %s" % (a, b))
+        yield urwid.Divider(" ")
 
 def have_input(func):
     def _have_input(*args):
@@ -37,6 +36,14 @@ def have_input(func):
             func(*args)
     return _have_input
 
+def update_grid(func):
+    def _update_grid(*args):
+        to_return = func(*args)
+        louie.send("update_grid")
+        return to_return
+
+    return _update_grid
+
 def update_main(func):
     def _update_main(*args):
         to_return = func(*args)
@@ -44,6 +51,39 @@ def update_main(func):
         return to_return
 
     return _update_main
+
+def follow_item_in_grid(func):
+    def _follow_item(*args):
+        item = func(*args)
+        self = args[0]
+
+        a = 1
+        found = False
+        for i in getattr(self, "c%s" % self.current_grid).body[1:]:
+            if i.original_widget.item == item:
+                found = True
+                break
+            a += 1
+        if not found:
+            for j in [str(j) for j in range(1, 5) if str(j) != self.current_grid]:
+                a = 1
+                for i in getattr(self, "c%s" % j).body[1:]:
+                    if i.original_widget.item == item:
+                        found = True
+                        break
+                    a += 1
+                if found:
+                    self.current_grid = j
+                    break
+
+        self.frame.get_body().set_focus(self.focus[self.current_grid][0])
+        self.frame.get_body().get_focus().set_focus(self.focus[self.current_grid][1])
+        setattr(self, "position_%s" % self.current_grid, a)
+        getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+
+        return item
+
+    return _follow_item
 
 def follow_item(func):
     def _follow_item(*args):
@@ -84,12 +124,12 @@ class State(object):
         return self.state
 
 class Item():
-    def __init__(self, name, finished=False, progress=None, difficulty=0, consequence=0, creation_date=date.today(), completion_date=None):
+    def __init__(self, name, finished=False, progress=None, urgence=0, importance=0, creation_date=date.today(), completion_date=None):
         self.name = name
         self.finished = finished
         self.progress = progress if progress else []
-        self.difficulty = difficulty
-        self.consequence = consequence
+        self.urgence = urgence
+        self.importance = importance
         self.creation_date = creation_date
         self.completion_date = completion_date
 
@@ -105,13 +145,21 @@ class Item():
         D('"%s" got a new point' % self.name.encode("Utf-8"))
         self.progress.append(date.today())
 
-    def more(self):
-        self.consequence += 1
+    def more_urgence(self):
+        self.urgence += 1
 
-    def less(self):
-        self.consequence -= 1
-        if self.consequence < 0:
-            self.consequence = 0
+    def less_urgence(self):
+        self.urgence -= 1
+        if self.urgence < 0:
+            self.urgence = 0
+
+    def more_importance(self):
+        self.importance += 1
+
+    def less_importance(self):
+        self.importance -= 1
+        if self.importance < 0:
+            self.importance = 0
 
 class ItemList():
     def __init__(self):
@@ -121,8 +169,11 @@ class ItemList():
         "Always save on death to be sure not to lose datas"
         self.save()
 
-    def get(self, full=False):
-        self.items = sorted(self.items, key=lambda x: -x.consequence)
+    def get(self, full=False, urgence=False):
+        if urgence:
+            self.items = sorted(self.items, key=lambda x: -x.urgence)
+        else:
+            self.items = sorted(self.items, key=lambda x: -x.importance)
         if not full:
             return filter(lambda x: not x.finished, self.items)
         else:
@@ -148,7 +199,7 @@ class ItemWidget(urwid.Text):
 
     def update(self):
         text = []
-        text.append('%i ' % self.item.consequence)
+        text.append('%i/%s ' % (self.item.importance, self.item.urgence))
         if not self.item.finished:
             text.append(self.item.name)
         else:
@@ -164,19 +215,24 @@ class HelpList(object):
         self.state = state
         self.position = 0
         self.init_signals()
+        self.previous_state = None
 
     def init_signals(self):
-        command(self.exit,                  "q", "help", "return to main view")
+        command(self.exit,                  "q", "help", "return to previous view")
         command(self.go_down,               "j" ,"help", "move the cursor down")
         command(self.go_up,                 "k", "help", "move the cursor up")
+        command(self.go_down,               "down" ,"help", "move the cursor down")
+        command(self.go_up,                 "up", "help", "move the cursor up")
 
     def exit(self):
-        louie.send("update_main")
+        louie.send("update_%s" % self.previous_state)
 
     def fill_list(self):
-        self.content = [urwid.Text(i) for i in get_documentations()]
+        self.content = [i for i in get_documentations()]
         self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame.set_body(urwid.ListBox(self.content))
+        if self.state.get() != "help":
+            self.previous_state = self.state.get()
         self.state.set_state("help")
 
     def go_down(self):
@@ -189,20 +245,267 @@ class HelpList(object):
             self.position -= 1
             self.frame.get_body().set_focus(self.position)
 
+class GridView(object):
+    focus = {"1" : (0, 0), "2" : (0, 1), "3" : (1, 0), "4" : (1, 1)}
+    def __init__(self, frame, state, item_list, doc):
+        self.frame = frame
+        self.state = state
+        self.doc = doc
+        self.item_list = item_list
+        self.mid_importance = max(self.item_list.get(), key=lambda x: x.importance).importance / 2
+        self.mid_urgence = max(self.item_list.get(), key=lambda x: x.urgence).urgence / 2
+        self.init_signals()
+        self.position_1 = 1
+        self.position_2 = 1
+        self.position_3 = 1
+        self.position_4 = 1
+        self.current_grid = "1"
+        self.full_list = False
+        self.urgence = False
+        self.footer = urwid.Filler(urwid.Edit("", ""))
+
+    def fill_list(self):
+        self.c1 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important (>%s) and urgent (>%s) tems" % (self.mid_importance, self.mid_urgence)), 'center', wrap="any"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgence) if x.importance > self.mid_importance and x.urgence > self.mid_urgence]))
+        self.c2 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important (>%s) items" % self.mid_importance), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgence) if x.importance > self.mid_importance and x.urgence <= self.mid_urgence]))
+        self.c3 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Urgent (>%s) items" % self.mid_urgence), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgence) if x.importance <= self.mid_importance and x.urgence > self.mid_urgence]))
+        self.c4 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Non urgent (<%s) and non important (<%s) items" % (self.mid_importance, self.mid_urgence)), 'center'), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgence) if x.importance <= self.mid_importance and x.urgence <= self.mid_urgence]))
+        a = urwid.Columns((self.c1, self.c2))
+        b = urwid.Columns((self.c3, self.c4))
+        self.frame.set_body(urwid.Pile((a, b, ('fixed', 1, self.footer))))
+        self.state.set_state("grid")
+        getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+
+        # hum, this is binary value - 1, maybe I can optimise playing with that
+        self.frame.get_body().set_focus(self.focus[self.current_grid][0])
+        self.frame.get_body().get_focus().set_focus(self.focus[self.current_grid][1])
+
+    def init_signals(self):
+        command(self.exit,                      "q", "grid", "quit holyview")
+        self.back_to_main_list = lambda : louie.send("update_main")
+        command(self.back_to_main_list,         "G", "grid", "go to list view")
+        command(self.add_task,                  "a", "grid", "add a new item")
+        command(self.go_down,                   "j" ,"grid", "move the cursor down")
+        command(self.go_up,                     "k", "grid", "move the cursor up")
+        command(self.go_down_in_grid,           "J" ,"grid", "select the lower grid")
+        command(self.go_up_in_grid,             "K", "grid", "select the upper grid")
+        command(self.go_right_in_grid,          "L" ,"grid", "select the right grid")
+        command(self.go_left_in_grid,           "H", "grid", "select the left grid")
+        command(self.remove_current_item,       "d", "grid", "remove the current item")
+        command(self.rename_current_item,       "r", "grid", "rename the current item")
+        command(self.toggle_current_item,       " ", "grid", "toggle the current item (between finished and unfinished)")
+        command(self.add_point,                 "+", "grid", "add a point the current item")
+        command(self.remove_point,              "-", "grid", "remove a point the current item")
+        command(self.more_urgence,              "u", "grid", "augment the urgence of the current item")
+        command(self.less_urgence,              "U", "grid", "lower the urgence of the current item")
+        command(self.more_importance,           "i", "grid", "augment the importance of the current item")
+        command(self.less_importance,           "I", "grid", "lower the importance of the current item")
+        command(self.increase_mid_urgence,      "p", "grid", "increase the value of the mid urgence")
+        command(self.decrease_mid_urgence,      "P", "grid", "decrease the value of the mid urgence")
+        command(self.increase_mid_importance,   "o", "grid", "increase the value of the mid importance")
+        command(self.decrease_mid_importance,   "O", "grid", "decrease the value of the mid importance")
+        command(self.toggle_show_full_list,     "t", "grid", "toggle displaying the completed items")
+        command(self.toggle_urgence_importance, "y", "grid", "toggle displaying the completed items")
+        command(self.doc.fill_list,             "?", "grid", "display help")
+
+        command(self.fill_list,                  "update", "grid", None)
+        command(self.get_user_input_grid,        "enter", "user_input_grid", None)
+
+    def rename_current_item(self):
+        self._wait_for_input("New description: ", self.get_rename_current_item)
+
+    @disconnect
+    @have_input
+    @update_grid
+    def get_rename_current_item(self):
+        self._get_current_item().name = self.user_input
+        self._get_current_widget().update()
+
+    def add_task(self):
+        self._wait_for_input("New item: ", self.get_add_task)
+
+    @update_grid
+    def remove_current_item(self):
+        self.item_list.remove(self._get_current_item())
+        if getattr(self, "position_%s" % self.current_grid) == (len(getattr(self, "c%s" % self.current_grid).body) - 1):
+            setattr(self, "position_%s" % self.current_grid, len(getattr(self, "c%s" % self.current_grid).body) - 2)
+
+    @disconnect
+    @have_input
+    @update_grid
+    def get_add_task(self):
+        self.item_list.add(self.user_input)
+
+    def get_user_input_grid(self):
+        self.user_input = self.frame.get_body().get_focus().body.edit_text
+        self.frame.get_body().get_focus().body.edit_text = ""
+        self.frame.get_body().get_focus().body.set_caption("")
+        self.frame.get_body().set_focus(self.focus[self.current_grid][0])
+        self.frame.get_body().get_focus().set_focus(self.focus[self.current_grid][1])
+        louie.send("set state", None, "grid")
+        louie.send("user_input_done")
+
+    def _wait_for_input(self, text, callback):
+        self.frame.get_body().set_focus(2)
+        self.frame.get_body().get_focus().body.set_caption(text)
+        louie.send("set state", None, "user_input_grid")
+        louie.connect(callback, "user_input_done")
+
+    @follow_item_in_grid
+    @update_grid
+    def toggle_urgence_importance(self):
+        self.urgence = not self.urgence
+        return self._get_current_item()
+
+    @update_grid
+    def toggle_show_full_list(self):
+        self.full_list = not self.full_list
+
+    @update_grid
+    def increase_mid_urgence(self):
+        self.mid_urgence = self.mid_urgence + 1 if self.mid_urgence < max(self.item_list.get(), key=lambda x: x.urgence).urgence else max(self.item_list.get(), key=lambda x: x.urgence).urgence
+
+    @update_grid
+    def decrease_mid_urgence(self):
+        self.mid_urgence = self.mid_urgence - 1 if self.mid_urgence >= 1 else 0
+
+    @update_grid
+    def increase_mid_importance(self):
+        self.mid_importance = self.mid_importance + 1 if self.mid_importance < max(self.item_list.get(), key=lambda x: x.importance).importance else max(self.item_list.get(), key=lambda x: x.importance).importance
+
+    @update_grid
+    def decrease_mid_importance(self):
+        self.mid_importance = self.mid_importance - 1 if self.mid_importance >= 1 else 0
+
+    @update_grid
+    def remove_point(self):
+        self._get_current_item().remove_point()
+        self._get_current_widget().update()
+
+    @update_grid
+    def add_point(self):
+        self._get_current_item().add_point()
+        self._get_current_widget().update()
+
+    @follow_item_in_grid
+    @update_grid
+    def more_importance(self):
+        self._get_current_item().more_importance()
+        self._get_current_widget().update()
+        return self._get_current_item()
+
+    @follow_item_in_grid
+    @update_grid
+    def less_importance(self):
+        self._get_current_item().less_importance()
+        self._get_current_widget().update()
+        return self._get_current_item()
+
+    @follow_item_in_grid
+    @update_grid
+    def more_urgence(self):
+        self._get_current_item().more_urgence()
+        self._get_current_widget().update()
+        return self._get_current_item()
+
+    @follow_item_in_grid
+    @update_grid
+    def less_urgence(self):
+        self._get_current_item().less_urgence()
+        self._get_current_widget().update()
+        return self._get_current_item()
+
+    def _get_current_widget(self):
+        return self.frame.get_body().get_focus().get_focus().get_focus()[0].original_widget
+
+    def _get_current_item(self):
+        return self.frame.get_body().get_focus().get_focus().get_focus()[0].original_widget.item
+
+    @update_grid
+    def toggle_current_item(self):
+        self._get_current_item().toggle()
+        self._get_current_widget().update()
+
+    def go_down_in_grid(self):
+        if self.current_grid in ("3", "4"):
+            return
+
+        self.frame.get_body().set_focus(1)
+        if self.current_grid == "1":
+            self.current_grid = "3"
+            self.frame.get_body().get_focus().set_focus(0)
+        elif self.current_grid == "2":
+            self.current_grid = "4"
+            self.frame.get_body().get_focus().set_focus(1)
+        getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+
+    def go_up_in_grid(self):
+        if self.current_grid in ("1", "2"):
+            return
+
+        self.frame.get_body().set_focus(0)
+        if self.current_grid == "3":
+            self.current_grid = "1"
+            self.frame.get_body().get_focus().set_focus(0)
+        elif self.current_grid == "4":
+            self.current_grid = "2"
+            self.frame.get_body().get_focus().set_focus(1)
+        getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+
+    def go_right_in_grid(self):
+        if self.current_grid in ("2", "4"):
+            return
+
+        self.frame.get_body().get_focus().set_focus(1)
+        if self.current_grid == "1":
+            self.current_grid = "2"
+            self.frame.get_body().set_focus(0)
+        elif self.current_grid == "3":
+            self.current_grid = "4"
+            self.frame.get_body().set_focus(1)
+        getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+
+    def go_left_in_grid(self):
+        if self.current_grid in ("1", "3"):
+            return
+
+        self.frame.get_body().get_focus().set_focus(0)
+        if self.current_grid == "2":
+            self.current_grid = "1"
+            self.frame.get_body().set_focus(0)
+        elif self.current_grid == "4":
+            self.current_grid = "3"
+            self.frame.get_body().set_focus(1)
+        getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+
+    def go_down(self):
+        if getattr(self, "position_%s" % self.current_grid) < (len(getattr(self, "c%s" % self.current_grid).body) - 1):
+            setattr(self, "position_%s" % self.current_grid, getattr(self, "position_%s" % self.current_grid) + 1)
+            getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+
+    def go_up(self):
+        if getattr(self, "position_%s" % self.current_grid) > 1:
+            setattr(self, "position_%s" % self.current_grid, getattr(self, "position_%s" % self.current_grid) - 1)
+            getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+
+    def exit(self):
+        raise urwid.ExitMainLoop
+
 class MainList(object):
     def __init__(self):
         self.item_list = ItemList()
         self.frame = None
-        self.state = State(("main", "user_input_main", "help"), "main")
+        self.state = State(("main", "user_input_main", "help", "grid", "user_input_grid"), "main")
         self.content = [ItemWidget(i) for i in self.item_list.get()]
         self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame = urwid.Frame(urwid.ListBox(self.content))
         self.footer = urwid.Edit("", "")
         self.frame.set_footer(self.footer)
         self.doc = HelpList(self.frame, self.state)
+        self.grid = GridView(self.frame, self.state, self.item_list, self.doc)
         self.init_signals()
         self.position = 0
         self.full_list = False
+        self.urgence = False
         #self.fill_list()
         #self.show_key = urwid.Text("MaList 0.1", wrap='clip')
         #self.frame.set_header(urwid.AttrMap(self.show_key, 'header'))
@@ -224,7 +527,7 @@ class MainList(object):
         urwid.MainLoop(self.frame, palette, input_filter=self.show_all_input, unhandled_input=self.manage_input).run()
 
     def fill_list(self):
-        self.content = [ItemWidget(i) for i in self.item_list.get(self.full_list)]
+        self.content = [ItemWidget(i) for i in self.item_list.get(self.full_list, self.urgence)]
         D(self.item_list.get())
         self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame.set_body(urwid.ListBox(self.content))
@@ -232,22 +535,28 @@ class MainList(object):
         self.state.set_state("main")
 
     def init_signals(self):
-        command(self.exit,                  "q", "main", "quit holyview")
-        command(self.add_task,              "a", "main", "add a new item")
-        command(self.go_down,               "j" ,"main", "move the cursor down")
-        command(self.go_up,                 "k", "main", "move the cursor up")
-        command(self.remove_current_item,   "d", "main", "remove the current item")
-        command(self.rename_current_item,   "r", "main", "rename the current item")
-        command(self.toggle_current_item,   " ", "main", "toggle the current item (between finished and unfinished)")
-        command(self.add_point,             "+", "main", "add a point the current item")
-        command(self.remove_point,          "-", "main", "remove a point the current item")
-        command(self.more,                  "m", "main", "augment the priority of the current item")
-        command(self.less,                  "l", "main", "lower the priority of the current item")
-        command(self.toggle_show_full_list, "h", "main", "toggle displaying the completed items")
-        command(self.doc.fill_list,         "?", "main", "display help")
+        command(self.exit,                      "q", "main", "quit holyview")
+        command(self.add_task,                  "a", "main", "add a new item")
+        command(self.go_down,                   "j" ,"main", "move the cursor down")
+        command(self.go_up,                     "k", "main", "move the cursor up")
+        command(self.go_down,                   "down" ,"main", "move the cursor down")
+        command(self.go_up,                     "up", "main", "move the cursor up")
+        command(self.remove_current_item,       "d", "main", "remove the current item")
+        command(self.rename_current_item,       "r", "main", "rename the current item")
+        command(self.toggle_current_item,       " ", "main", "toggle the current item (between finished and unfinished)")
+        command(self.add_point,                 "+", "main", "add a point the current item")
+        command(self.remove_point,              "-", "main", "remove a point the current item")
+        command(self.more_urgence,              "u", "main", "augment the urgence of the current item")
+        command(self.less_urgence,              "U", "main", "lower the urgence of the current item")
+        command(self.more_importance,           "i", "main", "augment the importance of the current item")
+        command(self.less_importance,           "I", "main", "lower the importance of the current item")
+        command(self.toggle_show_full_list,     "t", "main", "toggle displaying the completed items")
+        command(self.toggle_urgence_importance, "y", "main", "toggle displaying the completed items")
+        command(self.doc.fill_list,             "?", "main", "display help")
+        command(self.grid.fill_list,            "G", "main", "grid view")
 
-        command(self.fill_list,             "update", "main", None)
-        command(self.get_user_input_main,   "enter", "user_input_main", None)
+        command(self.fill_list,                  "update", "main", None)
+        command(self.get_user_input_main,        "enter", "user_input_main", None)
 
     def show_all_input(self, input, raw):
         return input
@@ -279,6 +588,12 @@ class MainList(object):
         if self.position == len(self.content) - 1:
             self.position = len(self.content) - 2
 
+    @follow_item
+    @update_main
+    def toggle_urgence_importance(self):
+        self.urgence = not self.urgence
+        return self._get_current_item()
+
     @update_main
     def toggle_show_full_list(self):
         self.full_list = not self.full_list
@@ -295,6 +610,13 @@ class MainList(object):
     def rename_current_item(self):
         self._wait_for_input("New description: ", self.get_rename_current_item)
 
+    @disconnect
+    @have_input
+    @update_main
+    def get_rename_current_item(self):
+        self._get_current_item().name = self.user_input
+        self._get_current_widget().update()
+
     @update_main
     def remove_point(self):
         self._get_current_item().remove_point()
@@ -307,28 +629,35 @@ class MainList(object):
 
     @follow_item
     @update_main
-    def more(self):
-        self._get_current_item().more()
+    def more_urgence(self):
+        self._get_current_item().more_urgence()
         self._get_current_widget().update()
         return self._get_current_item()
 
     @follow_item
     @update_main
-    def less(self):
-        self._get_current_item().less()
+    def less_urgence(self):
+        self._get_current_item().less_urgence()
+        self._get_current_widget().update()
+        return self._get_current_item()
+
+    @follow_item
+    @update_main
+    def more_importance(self):
+        self._get_current_item().more_importance()
+        self._get_current_widget().update()
+        return self._get_current_item()
+
+    @follow_item
+    @update_main
+    def less_importance(self):
+        self._get_current_item().less_importance()
         self._get_current_widget().update()
         return self._get_current_item()
 
     @update_main
     def toggle_current_item(self):
         self._get_current_item().toggle()
-        self._get_current_widget().update()
-
-    @disconnect
-    @have_input
-    @update_main
-    def get_rename_current_item(self):
-        self._get_current_item().name = self.user_input
         self._get_current_widget().update()
 
     def add_task(self):
