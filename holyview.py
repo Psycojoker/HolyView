@@ -542,6 +542,7 @@ class MainList(object):
         D(self.content)
         if not self.content:
             self.content = [urwid.Text("You don't have any item yet, press \"a\" to add a new one and \"?\" for help")]
+            self.position = 0
         self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame.set_body(urwid.ListBox(self.content))
         self.frame.get_body().set_focus(self.position)
