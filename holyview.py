@@ -15,6 +15,13 @@ def D(text): open("DEBUG", "a").write("%s\n" % text)
 
 commands = {}
 
+def cant_be_call_on_empty_mainview(func):
+    def _cant_be_call_on_empty_mainview(*args):
+        self = args[0]
+        if self.item_list.get():
+            func(*args)
+    return _cant_be_call_on_empty_mainview
+
 def command(func, key, mode, doc):
     louie.connect(func, "%s_%s" % (key, mode))
     if doc:
@@ -181,7 +188,7 @@ class ItemList():
             return self.items
 
     def _get_all(self):
-        return cPickle.load(open(os.path.expanduser("~/.holyview.db"), "r"))
+        return cPickle.load(open(os.path.expanduser("~/.holyview.db"), "r")) if os.path.isfile(os.path.expanduser("~/.holyview.db")) else []
 
     def save(self):
         cPickle.dump(self.items, open(os.path.expanduser("~/.holyview.db"), "wb"))
@@ -253,8 +260,8 @@ class GridView(object):
         self.state = state
         self.doc = doc
         self.item_list = item_list
-        self.mid_importance = max(self.item_list.get(), key=lambda x: x.importance).importance / 2
-        self.mid_urgence = max(self.item_list.get(), key=lambda x: x.urgence).urgence / 2
+        self.mid_importance = max(self.item_list.get(), key=lambda x: x.importance).importance / 2 if self.item_list.get() else 0
+        self.mid_urgence = max(self.item_list.get(), key=lambda x: x.urgence).urgence / 2 if self.item_list.get() else 0
         self.init_signals()
         self.position_1 = 1
         self.position_2 = 1
@@ -498,6 +505,8 @@ class MainList(object):
         self.frame = None
         self.state = State(("main", "user_input_main", "help", "grid", "user_input_grid"), "main")
         self.content = [ItemWidget(i) for i in self.item_list.get()]
+        if not self.content:
+            self.content = [urwid.Text("You don't have any item yet, press \"a\" to add a new one and \"?\" for help")]
         self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame = urwid.Frame(urwid.ListBox(self.content))
         self.footer = urwid.Edit("", "")
@@ -530,6 +539,9 @@ class MainList(object):
 
     def fill_list(self):
         self.content = [ItemWidget(i) for i in self.item_list.get(self.full_list, self.urgence)]
+        D(self.content)
+        if not self.content:
+            self.content = [urwid.Text("You don't have any item yet, press \"a\" to add a new one and \"?\" for help")]
         self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame.set_body(urwid.ListBox(self.content))
         self.frame.get_body().set_focus(self.position)
