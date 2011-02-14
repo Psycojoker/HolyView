@@ -3,6 +3,7 @@
 
 #import couchdbkit
 
+import os
 import cPickle
 import urwid
 
@@ -180,10 +181,10 @@ class ItemList():
             return self.items
 
     def _get_all(self):
-        return cPickle.load(open("/home/psycojoker/.malistdb", "r"))
+        return cPickle.load(open(os.path.expanduser("~/.holyview.db"), "r"))
 
     def save(self):
-        cPickle.dump(self.items, open("/home/psycojoker/.malistdb", "wb"))
+        cPickle.dump(self.items, open(os.path.expanduser("~/.holyview.db"), "wb"))
 
     def add(self, *args):
         self.items.append(Item(*args))
