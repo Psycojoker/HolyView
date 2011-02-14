@@ -87,7 +87,7 @@ def follow_item_in_grid(func):
         self.frame.get_body().set_focus(self.focus[self.current_grid][0])
         self.frame.get_body().get_focus().set_focus(self.focus[self.current_grid][1])
         setattr(self, "position_%s" % self.current_grid, a)
-        self._get_current_grid().set_focus(getattr(self, "position_%s" % self.current_grid))
+        self._get_current_grid().set_focus(self._get_current_position())
 
         return item
 
@@ -285,7 +285,7 @@ class GridView(object):
 
         self.frame.get_body().set_focus(self.focus[self.current_grid][0])
         self.frame.get_body().get_focus().set_focus(self.focus[self.current_grid][1])
-        if previous_offset_row == 0 and getattr(self, "position_%s" % self.current_grid) == 1:
+        if previous_offset_row == 0 and self._get_current_position() == 1:
             self._get_current_grid().offset_rows = 1
 
     def init_signals(self):
@@ -445,7 +445,7 @@ class GridView(object):
         elif self.current_grid == "2":
             self.current_grid = "4"
             self.frame.get_body().get_focus().set_focus(1)
-        self._get_current_grid().set_focus(getattr(self, "position_%s" % self.current_grid))
+        self._get_current_grid().set_focus(self._get_current_position())
 
     def go_up_in_grid(self):
         if self.current_grid in ("1", "2"):
@@ -458,7 +458,7 @@ class GridView(object):
         elif self.current_grid == "4":
             self.current_grid = "2"
             self.frame.get_body().get_focus().set_focus(1)
-        self._get_current_grid().set_focus(getattr(self, "position_%s" % self.current_grid))
+        self._get_current_grid().set_focus(self._get_current_position())
 
     def go_right_in_grid(self):
         if self.current_grid in ("2", "4"):
@@ -471,7 +471,7 @@ class GridView(object):
         elif self.current_grid == "3":
             self.current_grid = "4"
             self.frame.get_body().set_focus(1)
-        self._get_current_grid().set_focus(getattr(self, "position_%s" % self.current_grid))
+        self._get_current_grid().set_focus(self._get_current_position())
 
     def go_left_in_grid(self):
         if self.current_grid in ("1", "3"):
@@ -484,23 +484,26 @@ class GridView(object):
         elif self.current_grid == "4":
             self.current_grid = "3"
             self.frame.get_body().set_focus(1)
-        self._get_current_grid().set_focus(getattr(self, "position_%s" % self.current_grid))
+        self._get_current_grid().set_focus(self._get_current_position())
 
     def go_down(self):
-        if getattr(self, "position_%s" % self.current_grid) < (len(self._get_current_grid().body) - 1):
-            setattr(self, "position_%s" % self.current_grid, getattr(self, "position_%s" % self.current_grid) + 1)
-            self._get_current_grid().set_focus(getattr(self, "position_%s" % self.current_grid))
+        if self._get_current_position() < (len(self._get_current_grid().body) - 1):
+            setattr(self, "position_%s" % self.current_grid, self._get_current_position() + 1)
+            self._get_current_grid().set_focus(self._get_current_position())
 
     def go_up(self):
-        if getattr(self, "position_%s" % self.current_grid) > 1:
-            setattr(self, "position_%s" % self.current_grid, getattr(self, "position_%s" % self.current_grid) - 1)
-            self._get_current_grid().set_focus(getattr(self, "position_%s" % self.current_grid))
+        if self._get_current_position() > 1:
+            setattr(self, "position_%s" % self.current_grid, self._get_current_position() - 1)
+            self._get_current_grid().set_focus(self._get_current_position())
 
     def exit(self):
         raise urwid.ExitMainLoop
 
     def _get_current_grid(self):
         return getattr(self, "c%s" % self.current_grid)
+
+    def _get_current_position(self):
+        return getattr(self, "position_%s" % self.current_grid)
 
 class MainList(object):
     def __init__(self):
