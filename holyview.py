@@ -529,7 +529,6 @@ class MainList(object):
 
     def fill_list(self):
         self.content = [ItemWidget(i) for i in self.item_list.get(self.full_list, self.urgence)]
-        D(self.item_list.get())
         self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame.set_body(urwid.ListBox(self.content))
         self.frame.get_body().set_focus(self.position)
