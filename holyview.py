@@ -273,9 +273,7 @@ class GridView(object):
         b = urwid.Columns((self.c3, self.c4))
         self.frame.set_body(urwid.Pile((a, b, ('fixed', 1, self.footer))))
         self.state.set_state("grid")
-        getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
 
-        # hum, this is binary value - 1, maybe I can optimise playing with that
         self.frame.get_body().set_focus(self.focus[self.current_grid][0])
         self.frame.get_body().get_focus().set_focus(self.focus[self.current_grid][1])
 
