@@ -277,7 +277,7 @@ class GridView(object):
         self.c2 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important (>%s) items" % self.mid_importance), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgence) if x.importance > self.mid_importance and x.urgence <= self.mid_urgence]))
         self.c3 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Urgent (>%s) items" % self.mid_urgence), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgence) if x.importance <= self.mid_importance and x.urgence > self.mid_urgence]))
         self.c4 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Non urgent (<%s) and non important (<%s) items" % (self.mid_importance, self.mid_urgence)), 'center'), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgence) if x.importance <= self.mid_importance and x.urgence <= self.mid_urgence]))
-        previous_offset_row = getattr(self, "c%s" % self.current_grid).offset_rows
+        previous_offset_row = self._get_current_grid().offset_rows
         a = urwid.Columns((self.c1, self.c2))
         b = urwid.Columns((self.c3, self.c4))
         self.frame.set_body(urwid.Pile((a, b, ('fixed', 1, self.footer))))
@@ -286,7 +286,7 @@ class GridView(object):
         self.frame.get_body().set_focus(self.focus[self.current_grid][0])
         self.frame.get_body().get_focus().set_focus(self.focus[self.current_grid][1])
         if previous_offset_row == 0 and getattr(self, "position_%s" % self.current_grid) == 1:
-            getattr(self, "c%s" % self.current_grid).offset_rows = 1
+            self._get_current_grid().offset_rows = 1
 
     def init_signals(self):
         command(self.exit,                      "q", "grid", "quit holyview")
@@ -335,8 +335,8 @@ class GridView(object):
     @update_grid
     def remove_current_item(self):
         self.item_list.remove(self._get_current_item())
-        if getattr(self, "position_%s" % self.current_grid) == (len(getattr(self, "c%s" % self.current_grid).body) - 1):
-            setattr(self, "position_%s" % self.current_grid, len(getattr(self, "c%s" % self.current_grid).body) - 2)
+        if getattr(self, "position_%s" % self.current_grid) == (len(self._get_current_grid()) - 1):
+            setattr(self, "position_%s" % self.current_grid, len(self._get_current_grid()) - 2)
 
     @disconnect
     @have_input
@@ -445,7 +445,7 @@ class GridView(object):
         elif self.current_grid == "2":
             self.current_grid = "4"
             self.frame.get_body().get_focus().set_focus(1)
-        getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+        self._get_current_grid().set_focus(getattr(self, "position_%s" % self.current_grid))
 
     def go_up_in_grid(self):
         if self.current_grid in ("1", "2"):
@@ -458,7 +458,7 @@ class GridView(object):
         elif self.current_grid == "4":
             self.current_grid = "2"
             self.frame.get_body().get_focus().set_focus(1)
-        getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+        self._get_current_grid().set_focus(getattr(self, "position_%s" % self.current_grid))
 
     def go_right_in_grid(self):
         if self.current_grid in ("2", "4"):
@@ -471,7 +471,7 @@ class GridView(object):
         elif self.current_grid == "3":
             self.current_grid = "4"
             self.frame.get_body().set_focus(1)
-        getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+        self._get_current_grid().set_focus(getattr(self, "position_%s" % self.current_grid))
 
     def go_left_in_grid(self):
         if self.current_grid in ("1", "3"):
@@ -484,20 +484,23 @@ class GridView(object):
         elif self.current_grid == "4":
             self.current_grid = "3"
             self.frame.get_body().set_focus(1)
-        getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+        self._get_current_grid().set_focus(getattr(self, "position_%s" % self.current_grid))
 
     def go_down(self):
-        if getattr(self, "position_%s" % self.current_grid) < (len(getattr(self, "c%s" % self.current_grid).body) - 1):
+        if getattr(self, "position_%s" % self.current_grid) < (len(self._get_current_grid().body) - 1):
             setattr(self, "position_%s" % self.current_grid, getattr(self, "position_%s" % self.current_grid) + 1)
-            getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+            self._get_current_grid().set_focus(getattr(self, "position_%s" % self.current_grid))
 
     def go_up(self):
         if getattr(self, "position_%s" % self.current_grid) > 1:
             setattr(self, "position_%s" % self.current_grid, getattr(self, "position_%s" % self.current_grid) - 1)
-            getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+            self._get_current_grid().set_focus(getattr(self, "position_%s" % self.current_grid))
 
     def exit(self):
         raise urwid.ExitMainLoop
+
+    def _get_current_grid(self):
+        return getattr(self, "c%s" % self.current_grid)
 
 class MainList(object):
     def __init__(self):
