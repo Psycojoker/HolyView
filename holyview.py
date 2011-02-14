@@ -67,7 +67,7 @@ def follow_item_in_grid(func):
 
         a = 1
         found = False
-        for i in getattr(self, "c%s" % self.current_grid).body[1:]:
+        for i in self._get_current_grid().body[1:]:
             if i.original_widget.item == item:
                 found = True
                 break
@@ -87,7 +87,7 @@ def follow_item_in_grid(func):
         self.frame.get_body().set_focus(self.focus[self.current_grid][0])
         self.frame.get_body().get_focus().set_focus(self.focus[self.current_grid][1])
         setattr(self, "position_%s" % self.current_grid, a)
-        getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
+        self._get_current_grid().set_focus(getattr(self, "position_%s" % self.current_grid))
 
         return item
 
