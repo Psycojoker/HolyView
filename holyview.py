@@ -335,7 +335,7 @@ class GridView(object):
     @update_grid
     def remove_current_item(self):
         self.item_list.remove(self._get_current_item())
-        if getattr(self, "position_%s" % self.current_grid) == (len(self._get_current_grid()) - 1):
+        if self._get_current_position() == (len(self._get_current_grid()) - 1):
             setattr(self, "position_%s" % self.current_grid, len(self._get_current_grid()) - 2)
 
     @disconnect
