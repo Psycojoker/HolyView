@@ -132,11 +132,11 @@ class State(object):
         return self.state
 
 class Item():
-    def __init__(self, name, finished=False, progress=None, urgence=0, importance=0, creation_date=date.today(), completion_date=None):
+    def __init__(self, name, finished=False, progress=None, urgency=0, importance=0, creation_date=date.today(), completion_date=None):
         self.name = name
         self.finished = finished
         self.progress = progress if progress else []
-        self.urgence = urgence
+        self.urgency = urgency
         self.importance = importance
         self.creation_date = creation_date
         self.completion_date = completion_date
@@ -153,13 +153,13 @@ class Item():
         D('"%s" got a new point' % self.name.encode("Utf-8"))
         self.progress.append(date.today())
 
-    def more_urgence(self):
-        self.urgence += 1
+    def more_urgency(self):
+        self.urgency += 1
 
-    def less_urgence(self):
-        self.urgence -= 1
-        if self.urgence < 0:
-            self.urgence = 0
+    def less_urgency(self):
+        self.urgency -= 1
+        if self.urgency < 0:
+            self.urgency = 0
 
     def more_importance(self):
         self.importance += 1
@@ -177,9 +177,9 @@ class ItemList():
         "Always save on death to be sure not to lose datas"
         self.save()
 
-    def get(self, full=False, urgence=False):
-        if urgence:
-            self.items = sorted(self.items, key=lambda x: -x.urgence)
+    def get(self, full=False, urgency=False):
+        if urgency:
+            self.items = sorted(self.items, key=lambda x: -x.urgency)
         else:
             self.items = sorted(self.items, key=lambda x: -x.importance)
         if not full:
@@ -207,7 +207,7 @@ class ItemWidget(urwid.Text):
 
     def update(self):
         text = []
-        text.append('%i/%s ' % (self.item.importance, self.item.urgence))
+        text.append('%i/%s ' % (self.item.importance, self.item.urgency))
         if not self.item.finished:
             text.append(self.item.name)
         else:
@@ -261,7 +261,7 @@ class GridView(object):
         self.doc = doc
         self.item_list = item_list
         self.mid_importance = max(self.item_list.get(), key=lambda x: x.importance).importance / 2 if self.item_list.get() else 0
-        self.mid_urgence = max(self.item_list.get(), key=lambda x: x.urgence).urgence / 2 if self.item_list.get() else 0
+        self.mid_urgency = max(self.item_list.get(), key=lambda x: x.urgency).urgency / 2 if self.item_list.get() else 0
         self.init_signals()
         self.position_1 = 1
         self.position_2 = 1
@@ -269,14 +269,14 @@ class GridView(object):
         self.position_4 = 1
         self.current_grid = "1"
         self.full_list = False
-        self.urgence = False
+        self.urgency = False
         self.footer = urwid.Filler(urwid.Edit("", ""))
 
     def fill_list(self):
-        self.c1 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important (>%s) and urgent (>%s) tems" % (self.mid_importance, self.mid_urgence)), 'center', wrap="any"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgence) if x.importance > self.mid_importance and x.urgence > self.mid_urgence]))
-        self.c2 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important (>%s) items" % self.mid_importance), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgence) if x.importance > self.mid_importance and x.urgence <= self.mid_urgence]))
-        self.c3 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Urgent (>%s) items" % self.mid_urgence), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgence) if x.importance <= self.mid_importance and x.urgence > self.mid_urgence]))
-        self.c4 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Non urgent (<%s) and non important (<%s) items" % (self.mid_importance, self.mid_urgence)), 'center'), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgence) if x.importance <= self.mid_importance and x.urgence <= self.mid_urgence]))
+        self.c1 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important (>%s) and urgent (>%s) tems" % (self.mid_importance, self.mid_urgency)), 'center', wrap="any"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgency) if x.importance > self.mid_importance and x.urgency > self.mid_urgency]))
+        self.c2 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important (>%s) items" % self.mid_importance), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgency) if x.importance > self.mid_importance and x.urgency <= self.mid_urgency]))
+        self.c3 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Urgent (>%s) items" % self.mid_urgency), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgency) if x.importance <= self.mid_importance and x.urgency > self.mid_urgency]))
+        self.c4 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Non urgent (<%s) and non important (<%s) items" % (self.mid_importance, self.mid_urgency)), 'center'), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgency) if x.importance <= self.mid_importance and x.urgency <= self.mid_urgency]))
         previous_offset_row = self._get_current_grid().offset_rows
         a = urwid.Columns((self.c1, self.c2))
         b = urwid.Columns((self.c3, self.c4))
@@ -304,16 +304,16 @@ class GridView(object):
         command(self.toggle_current_item,       " ", "grid", "toggle the current item (between finished and unfinished)")
         command(self.add_point,                 "+", "grid", "add a point the current item")
         command(self.remove_point,              "-", "grid", "remove a point the current item")
-        command(self.more_urgence,              "u", "grid", "augment the urgence of the current item")
-        command(self.less_urgence,              "U", "grid", "lower the urgence of the current item")
+        command(self.more_urgency,              "u", "grid", "augment the urgency of the current item")
+        command(self.less_urgency,              "U", "grid", "lower the urgency of the current item")
         command(self.more_importance,           "i", "grid", "augment the importance of the current item")
         command(self.less_importance,           "I", "grid", "lower the importance of the current item")
-        command(self.increase_mid_urgence,      "p", "grid", "increase the value of the mid urgence")
-        command(self.decrease_mid_urgence,      "P", "grid", "decrease the value of the mid urgence")
+        command(self.increase_mid_urgency,      "p", "grid", "increase the value of the mid urgency")
+        command(self.decrease_mid_urgency,      "P", "grid", "decrease the value of the mid urgency")
         command(self.increase_mid_importance,   "o", "grid", "increase the value of the mid importance")
         command(self.decrease_mid_importance,   "O", "grid", "decrease the value of the mid importance")
         command(self.toggle_show_full_list,     "t", "grid", "toggle displaying the completed items")
-        command(self.toggle_urgence_importance, "y", "grid", "toggle displaying the completed items")
+        command(self.toggle_urgency_importance, "y", "grid", "toggle displaying the completed items")
         command(self.doc.fill_list,             "?", "grid", "display help")
 
         command(self.fill_list,                  "update", "grid", None)
@@ -361,8 +361,8 @@ class GridView(object):
 
     @follow_item_in_grid
     @update_grid
-    def toggle_urgence_importance(self):
-        self.urgence = not self.urgence
+    def toggle_urgency_importance(self):
+        self.urgency = not self.urgency
         return self._get_current_item()
 
     @update_grid
@@ -370,12 +370,12 @@ class GridView(object):
         self.full_list = not self.full_list
 
     @update_grid
-    def increase_mid_urgence(self):
-        self.mid_urgence = self.mid_urgence + 1 if self.mid_urgence < max(self.item_list.get(), key=lambda x: x.urgence).urgence else max(self.item_list.get(), key=lambda x: x.urgence).urgence
+    def increase_mid_urgency(self):
+        self.mid_urgency = self.mid_urgency + 1 if self.mid_urgency < max(self.item_list.get(), key=lambda x: x.urgency).urgency else max(self.item_list.get(), key=lambda x: x.urgency).urgency
 
     @update_grid
-    def decrease_mid_urgence(self):
-        self.mid_urgence = self.mid_urgence - 1 if self.mid_urgence >= 1 else 0
+    def decrease_mid_urgency(self):
+        self.mid_urgency = self.mid_urgency - 1 if self.mid_urgency >= 1 else 0
 
     @update_grid
     def increase_mid_importance(self):
@@ -411,15 +411,15 @@ class GridView(object):
 
     @follow_item_in_grid
     @update_grid
-    def more_urgence(self):
-        self._get_current_item().more_urgence()
+    def more_urgency(self):
+        self._get_current_item().more_urgency()
         self._get_current_widget().update()
         return self._get_current_item()
 
     @follow_item_in_grid
     @update_grid
-    def less_urgence(self):
-        self._get_current_item().less_urgence()
+    def less_urgency(self):
+        self._get_current_item().less_urgency()
         self._get_current_widget().update()
         return self._get_current_item()
 
@@ -522,7 +522,7 @@ class MainList(object):
         self.init_signals()
         self.position = 0
         self.full_list = False
-        self.urgence = False
+        self.urgency = False
         #self.fill_list()
         #self.show_key = urwid.Text("MaList 0.1", wrap='clip')
         #self.frame.set_header(urwid.AttrMap(self.show_key, 'header'))
@@ -544,7 +544,7 @@ class MainList(object):
         urwid.MainLoop(self.frame, palette, input_filter=self.show_all_input, unhandled_input=self.manage_input).run()
 
     def fill_list(self):
-        self.content = [ItemWidget(i) for i in self.item_list.get(self.full_list, self.urgence)]
+        self.content = [ItemWidget(i) for i in self.item_list.get(self.full_list, self.urgency)]
         D(self.content)
         if not self.content:
             self.content = [urwid.Text("You don't have any item yet, press \"a\" to add a new one and \"?\" for help")]
@@ -566,12 +566,12 @@ class MainList(object):
         command(self.toggle_current_item,       " ", "main", "toggle the current item (between finished and unfinished)")
         command(self.add_point,                 "+", "main", "add a point the current item")
         command(self.remove_point,              "-", "main", "remove a point the current item")
-        command(self.more_urgence,              "u", "main", "augment the urgence of the current item")
-        command(self.less_urgence,              "U", "main", "lower the urgence of the current item")
+        command(self.more_urgency,              "u", "main", "augment the urgency of the current item")
+        command(self.less_urgency,              "U", "main", "lower the urgency of the current item")
         command(self.more_importance,           "i", "main", "augment the importance of the current item")
         command(self.less_importance,           "I", "main", "lower the importance of the current item")
         command(self.toggle_show_full_list,     "t", "main", "toggle displaying the completed items")
-        command(self.toggle_urgence_importance, "y", "main", "toggle displaying the completed items")
+        command(self.toggle_urgency_importance, "y", "main", "toggle displaying the completed items")
         command(self.doc.fill_list,             "?", "main", "display help")
         command(self.grid.fill_list,            "G", "main", "grid view")
 
@@ -610,8 +610,8 @@ class MainList(object):
 
     @follow_item
     @update_main
-    def toggle_urgence_importance(self):
-        self.urgence = not self.urgence
+    def toggle_urgency_importance(self):
+        self.urgency = not self.urgency
         return self._get_current_item()
 
     @update_main
@@ -649,15 +649,15 @@ class MainList(object):
 
     @follow_item
     @update_main
-    def more_urgence(self):
-        self._get_current_item().more_urgence()
+    def more_urgency(self):
+        self._get_current_item().more_urgency()
         self._get_current_widget().update()
         return self._get_current_item()
 
     @follow_item
     @update_main
-    def less_urgence(self):
-        self._get_current_item().less_urgence()
+    def less_urgency(self):
+        self._get_current_item().less_urgency()
         self._get_current_widget().update()
         return self._get_current_item()
 
