@@ -285,6 +285,7 @@ class GridView(object):
 
         self.frame.get_body().set_focus(self.focus[self.current_grid][0])
         self.frame.get_body().get_focus().set_focus(self.focus[self.current_grid][1])
+        getattr(self, "c%s" % self.current_grid).set_focus(getattr(self, "position_%s" % self.current_grid))
         if previous_offset_row == 0 and self._get_current_position() == 1:
             self._get_current_grid().offset_rows = 1
 
