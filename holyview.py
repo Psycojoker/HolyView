@@ -313,13 +313,13 @@ class GridView(object):
         command(self.decrease_mid_urgency,      "P", "grid", "decrease the value of the mid urgency")
         command(self.increase_mid_importance,   "o", "grid", "increase the value of the mid importance")
         command(self.decrease_mid_importance,   "O", "grid", "decrease the value of the mid importance")
-        command(self.refresh_mid_grid,           "R", "grid", "refresh mid values used in grid view")
+        command(self.refresh_mid_grid,          "R", "grid", "refresh mid values used in grid view")
         command(self.toggle_show_full_list,     "t", "grid", "toggle displaying the completed items")
         command(self.toggle_urgency_importance, "y", "grid", "toggle displaying the completed items")
         command(self.doc.fill_list,             "?", "grid", "display help")
 
-        command(self.fill_list,                  "update", "grid", None)
-        command(self.get_user_input_grid,        "enter", "user_input_grid", None)
+        command(self.fill_list,                 "update", "grid", None)
+        command(self.get_user_input_grid,       "enter", "user_input_grid", None)
 
     def rename_current_item(self):
         self._wait_for_input("New description: ", self.get_rename_current_item)
