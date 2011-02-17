@@ -524,15 +524,14 @@ class MainList(object):
         self.frame = urwid.Frame(urwid.ListBox(self.content))
         self.footer = urwid.Edit("", "")
         self.frame.set_footer(self.footer)
+        self.header = urwid.AttrMap(urwid.Text("  HolyView 0.1 -- press ? to see help", wrap='clip'), 'header')
+        self.frame.set_header(self.header)
         self.doc = HelpList(self.frame, self.state)
         self.grid = GridView(self.frame, self.state, self.item_list, self.doc)
         self.init_signals()
         self.position = 0
         self.full_list = False
         self.urgency = False
-        #self.fill_list()
-        #self.show_key = urwid.Text("MaList 0.1", wrap='clip')
-        #self.frame.set_header(urwid.AttrMap(self.show_key, 'header'))
 
     def get_state(self):
         return self.state.get()
