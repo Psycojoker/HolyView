@@ -599,11 +599,13 @@ class MainList(object):
         #if input == "q":
             #raise urwid.ExitMainLoop
 
+    @cant_be_called_on_empty_list
     def go_down(self):
         if self.position < (len(self.content) - 1):
             self.position += 1
             self.frame.get_body().set_focus(self.position)
 
+    @cant_be_called_on_empty_list
     def go_up(self):
         if self.position > 0:
             self.position -= 1
@@ -635,6 +637,7 @@ class MainList(object):
     def exit(self):
         raise urwid.ExitMainLoop
 
+    @cant_be_called_on_empty_list
     def rename_current_item(self):
         self._wait_for_input("New description: ", self.get_rename_current_item)
 
@@ -645,16 +648,19 @@ class MainList(object):
         self._get_current_item().name = self.user_input
         self._get_current_widget().update()
 
+    @cant_be_called_on_empty_list
     @update_main
     def remove_point(self):
         self._get_current_item().remove_point()
         self._get_current_widget().update()
 
+    @cant_be_called_on_empty_list
     @update_main
     def add_point(self):
         self._get_current_item().add_point()
         self._get_current_widget().update()
 
+    @cant_be_called_on_empty_list
     @follow_item
     @update_main
     def more_urgency(self):
@@ -662,6 +668,7 @@ class MainList(object):
         self._get_current_widget().update()
         return self._get_current_item()
 
+    @cant_be_called_on_empty_list
     @follow_item
     @update_main
     def less_urgency(self):
@@ -669,6 +676,7 @@ class MainList(object):
         self._get_current_widget().update()
         return self._get_current_item()
 
+    @cant_be_called_on_empty_list
     @follow_item
     @update_main
     def more_importance(self):
@@ -676,6 +684,7 @@ class MainList(object):
         self._get_current_widget().update()
         return self._get_current_item()
 
+    @cant_be_called_on_empty_list
     @follow_item
     @update_main
     def less_importance(self):
@@ -683,6 +692,7 @@ class MainList(object):
         self._get_current_widget().update()
         return self._get_current_item()
 
+    @cant_be_called_on_empty_list
     @update_main
     def toggle_current_item(self):
         self._get_current_item().toggle()
