@@ -609,8 +609,8 @@ class MainList(object):
             self.position -= 1
             self.frame.get_body().set_focus(self.position)
 
-    @update_main
     @cant_be_called_on_empty_list
+    @update_main
     def remove_current_item(self):
         self.item_list.remove(self._get_current_item())
         if self.position == len(self.content) - 1:
