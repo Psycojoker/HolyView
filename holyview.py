@@ -15,12 +15,12 @@ def D(text): open("DEBUG", "a").write("%s\n" % text)
 
 commands = {}
 
-def cant_be_call_on_empty_mainview(func):
-    def _cant_be_call_on_empty_mainview(*args):
+def cant_be_called_on_empty_list(func):
+    def _cant_be_called_on_empty_list(*args):
         self = args[0]
         if self.item_list.get():
             func(*args)
-    return _cant_be_call_on_empty_mainview
+    return _cant_be_called_on_empty_list
 
 def command(func, key, mode, doc):
     louie.connect(func, "%s_%s" % (key, mode))
@@ -610,6 +610,7 @@ class MainList(object):
             self.frame.get_body().set_focus(self.position)
 
     @update_main
+    @cant_be_called_on_empty_list
     def remove_current_item(self):
         self.item_list.remove(self._get_current_item())
         if self.position == len(self.content) - 1:
