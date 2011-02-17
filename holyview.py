@@ -270,7 +270,6 @@ class GridView(object):
         self.current_grid = "1"
         self.full_list = False
         self.urgency = False
-        self.footer = urwid.Filler(urwid.Edit("", ""))
 
     def fill_list(self):
         self.c1 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important (>%s) and urgent (>%s) tems" % (self.mid_importance, self.mid_urgency)), 'center', wrap="any"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgency) if x.importance > self.mid_importance and x.urgency > self.mid_urgency]))
@@ -280,7 +279,7 @@ class GridView(object):
         previous_offset_row = self._get_current_grid().offset_rows
         a = urwid.Columns((self.c1, self.c2))
         b = urwid.Columns((self.c3, self.c4))
-        self.frame.set_body(urwid.Pile((a, b, ('fixed', 1, self.footer))))
+        self.frame.set_body(urwid.Pile((a, b)))
         self.state.set_state("grid")
 
         self.frame.get_body().set_focus(self.focus[self.current_grid][0])
@@ -347,17 +346,18 @@ class GridView(object):
         self.item_list.add(self.user_input)
 
     def get_user_input_grid(self):
-        self.user_input = self.frame.get_body().get_focus().body.edit_text
-        self.frame.get_body().get_focus().body.edit_text = ""
-        self.frame.get_body().get_focus().body.set_caption("")
+        self.user_input = self.frame.footer.edit_text
+        self.frame.footer.edit_text = ""
+        self.frame.footer.set_caption("")
+        self.frame.set_focus('body')
         self.frame.get_body().set_focus(self.focus[self.current_grid][0])
         self.frame.get_body().get_focus().set_focus(self.focus[self.current_grid][1])
         louie.send("set state", None, "grid")
         louie.send("user_input_done")
 
     def _wait_for_input(self, text, callback):
-        self.frame.get_body().set_focus(2)
-        self.frame.get_body().get_focus().body.set_caption(text)
+        self.frame.set_focus('footer')
+        self.frame.get_footer().set_caption(text)
         louie.send("set state", None, "user_input_grid")
         louie.connect(callback, "user_input_done")
 
