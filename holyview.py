@@ -312,6 +312,7 @@ class GridView(object):
         command(self.decrease_mid_urgency,      "P", "grid", "decrease the value of the mid urgency")
         command(self.increase_mid_importance,   "o", "grid", "increase the value of the mid importance")
         command(self.decrease_mid_importance,   "O", "grid", "decrease the value of the mid importance")
+        command(self.refresh_mid_grid,           "R", "grid", "refresh mid values used in grid view")
         command(self.toggle_show_full_list,     "t", "grid", "toggle displaying the completed items")
         command(self.toggle_urgency_importance, "y", "grid", "toggle displaying the completed items")
         command(self.doc.fill_list,             "?", "grid", "display help")
@@ -384,6 +385,11 @@ class GridView(object):
     @update_grid
     def decrease_mid_importance(self):
         self.mid_importance = self.mid_importance - 1 if self.mid_importance >= 1 else 0
+
+    @update_grid
+    def refresh_mid_grid(self):
+        self.mid_urgency = max(self.item_list.get(), key=lambda x: x.urgency).urgency / 2 if self.item_list.get() else 0
+        self.mid_importance = max(self.item_list.get(), key=lambda x: x.importance).importance / 2 if self.item_list.get() else 0
 
     @update_grid
     def remove_point(self):
