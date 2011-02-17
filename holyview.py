@@ -18,7 +18,7 @@ commands = {}
 def cant_be_called_on_empty_list(func):
     def _cant_be_called_on_empty_list(*args):
         self = args[0]
-        if self.item_list.get():
+        if self.item_list.get(self.full_list):
             func(*args)
     return _cant_be_called_on_empty_list
 
