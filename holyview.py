@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding:Utf-8 -*-
 
-#import couchdbkit
-
 import os
 import cPickle
 import urwid
