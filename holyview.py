@@ -1,7 +1,20 @@
 #!/usr/bin/python
 # -*- coding:Utf-8 -*-
 
-#import couchdbkit
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# Copyright Laurent Peuch <cortex@worlddomination.be> - 2010
 
 import os
 import cPickle
@@ -15,12 +28,12 @@ def D(text): open("DEBUG", "a").write("%s\n" % text)
 
 commands = {}
 
-def cant_be_call_on_empty_mainview(func):
-    def _cant_be_call_on_empty_mainview(*args):
+def cant_be_called_on_empty_list(func):
+    def _cant_be_called_on_empty_list(*args):
         self = args[0]
-        if self.item_list.get():
+        if self.item_list.get(self.full_list):
             func(*args)
-    return _cant_be_call_on_empty_mainview
+    return _cant_be_called_on_empty_list
 
 def command(func, key, mode, doc):
     louie.connect(func, "%s_%s" % (key, mode))
@@ -270,7 +283,6 @@ class GridView(object):
         self.current_grid = "1"
         self.full_list = False
         self.urgency = False
-        self.footer = urwid.Filler(urwid.Edit("", ""))
 
     def fill_list(self):
         self.c1 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important (>%s) and urgent (>%s) tems" % (self.mid_importance, self.mid_urgency)), 'center', wrap="any"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgency) if x.importance > self.mid_importance and x.urgency > self.mid_urgency]))
@@ -280,7 +292,7 @@ class GridView(object):
         previous_offset_row = self._get_current_grid().offset_rows
         a = urwid.Columns((self.c1, self.c2))
         b = urwid.Columns((self.c3, self.c4))
-        self.frame.set_body(urwid.Pile((a, b, ('fixed', 1, self.footer))))
+        self.frame.set_body(urwid.Pile((a, b)))
         self.state.set_state("grid")
 
         self.frame.get_body().set_focus(self.focus[self.current_grid][0])
@@ -313,13 +325,13 @@ class GridView(object):
         command(self.decrease_mid_urgency,      "P", "grid", "decrease the value of the mid urgency")
         command(self.increase_mid_importance,   "o", "grid", "increase the value of the mid importance")
         command(self.decrease_mid_importance,   "O", "grid", "decrease the value of the mid importance")
-        command(self.refresh_mid_grid,           "R", "grid", "refresh mid values used in grid view")
+        command(self.refresh_mid_grid,          "R", "grid", "refresh mid values used in grid view")
         command(self.toggle_show_full_list,     "t", "grid", "toggle displaying the completed items")
         command(self.toggle_urgency_importance, "y", "grid", "toggle displaying the completed items")
         command(self.doc.fill_list,             "?", "grid", "display help")
 
-        command(self.fill_list,                  "update", "grid", None)
-        command(self.get_user_input_grid,        "enter", "user_input_grid", None)
+        command(self.fill_list,                 "update", "grid", None)
+        command(self.get_user_input_grid,       "enter", "user_input_grid", None)
 
     def rename_current_item(self):
         self._wait_for_input("New description: ", self.get_rename_current_item)
@@ -337,7 +349,7 @@ class GridView(object):
     @update_grid
     def remove_current_item(self):
         self.item_list.remove(self._get_current_item())
-        if self._get_current_position() == (len(self._get_current_grid()) - 1):
+        if self._get_current_position() == (len(self._get_current_grid().body) - 1):
             setattr(self, "position_%s" % self.current_grid, len(self._get_current_grid()) - 2)
 
     @disconnect
@@ -347,17 +359,18 @@ class GridView(object):
         self.item_list.add(self.user_input)
 
     def get_user_input_grid(self):
-        self.user_input = self.frame.get_body().get_focus().body.edit_text
-        self.frame.get_body().get_focus().body.edit_text = ""
-        self.frame.get_body().get_focus().body.set_caption("")
+        self.user_input = self.frame.footer.edit_text
+        self.frame.footer.edit_text = ""
+        self.frame.footer.set_caption("")
+        self.frame.set_focus('body')
         self.frame.get_body().set_focus(self.focus[self.current_grid][0])
         self.frame.get_body().get_focus().set_focus(self.focus[self.current_grid][1])
         louie.send("set state", None, "grid")
         louie.send("user_input_done")
 
     def _wait_for_input(self, text, callback):
-        self.frame.get_body().set_focus(2)
-        self.frame.get_body().get_focus().body.set_caption(text)
+        self.frame.set_focus('footer')
+        self.frame.get_footer().set_caption(text)
         louie.send("set state", None, "user_input_grid")
         louie.connect(callback, "user_input_done")
 
@@ -519,20 +532,19 @@ class MainList(object):
         self.state = State(("main", "user_input_main", "help", "grid", "user_input_grid"), "main")
         self.content = [ItemWidget(i) for i in self.item_list.get()]
         if not self.content:
-            self.content = [urwid.Text("You don't have any item yet, press \"a\" to add a new one and \"?\" for help")]
+            self.content = [urwid.Text("You don't have any item yet, press \"a\" to add a new one and \"?\" for help and \"G\" to enter grid view")]
         self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame = urwid.Frame(urwid.ListBox(self.content))
         self.footer = urwid.Edit("", "")
         self.frame.set_footer(self.footer)
+        self.header = urwid.AttrMap(urwid.Text("  HolyView 0.1 -- press ? to see help", wrap='clip'), 'header')
+        self.frame.set_header(self.header)
         self.doc = HelpList(self.frame, self.state)
         self.grid = GridView(self.frame, self.state, self.item_list, self.doc)
         self.init_signals()
         self.position = 0
         self.full_list = False
         self.urgency = False
-        #self.fill_list()
-        #self.show_key = urwid.Text("MaList 0.1", wrap='clip')
-        #self.frame.set_header(urwid.AttrMap(self.show_key, 'header'))
 
     def get_state(self):
         return self.state.get()
@@ -599,16 +611,19 @@ class MainList(object):
         #if input == "q":
             #raise urwid.ExitMainLoop
 
+    @cant_be_called_on_empty_list
     def go_down(self):
         if self.position < (len(self.content) - 1):
             self.position += 1
             self.frame.get_body().set_focus(self.position)
 
+    @cant_be_called_on_empty_list
     def go_up(self):
         if self.position > 0:
             self.position -= 1
             self.frame.get_body().set_focus(self.position)
 
+    @cant_be_called_on_empty_list
     @update_main
     def remove_current_item(self):
         self.item_list.remove(self._get_current_item())
@@ -634,6 +649,7 @@ class MainList(object):
     def exit(self):
         raise urwid.ExitMainLoop
 
+    @cant_be_called_on_empty_list
     def rename_current_item(self):
         self._wait_for_input("New description: ", self.get_rename_current_item)
 
@@ -644,16 +660,19 @@ class MainList(object):
         self._get_current_item().name = self.user_input
         self._get_current_widget().update()
 
+    @cant_be_called_on_empty_list
     @update_main
     def remove_point(self):
         self._get_current_item().remove_point()
         self._get_current_widget().update()
 
+    @cant_be_called_on_empty_list
     @update_main
     def add_point(self):
         self._get_current_item().add_point()
         self._get_current_widget().update()
 
+    @cant_be_called_on_empty_list
     @follow_item
     @update_main
     def more_urgency(self):
@@ -661,6 +680,7 @@ class MainList(object):
         self._get_current_widget().update()
         return self._get_current_item()
 
+    @cant_be_called_on_empty_list
     @follow_item
     @update_main
     def less_urgency(self):
@@ -668,6 +688,7 @@ class MainList(object):
         self._get_current_widget().update()
         return self._get_current_item()
 
+    @cant_be_called_on_empty_list
     @follow_item
     @update_main
     def more_importance(self):
@@ -675,6 +696,7 @@ class MainList(object):
         self._get_current_widget().update()
         return self._get_current_item()
 
+    @cant_be_called_on_empty_list
     @follow_item
     @update_main
     def less_importance(self):
@@ -682,6 +704,7 @@ class MainList(object):
         self._get_current_widget().update()
         return self._get_current_item()
 
+    @cant_be_called_on_empty_list
     @update_main
     def toggle_current_item(self):
         self._get_current_item().toggle()
