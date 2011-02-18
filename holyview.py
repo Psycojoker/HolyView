@@ -532,7 +532,7 @@ class MainList(object):
         self.state = State(("main", "user_input_main", "help", "grid", "user_input_grid"), "main")
         self.content = [ItemWidget(i) for i in self.item_list.get()]
         if not self.content:
-            self.content = [urwid.Text("You don't have any item yet, press \"a\" to add a new one and \"?\" for help")]
+            self.content = [urwid.Text("You don't have any item yet, press \"a\" to add a new one and \"?\" for help and \"G\" to enter grid view")]
         self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame = urwid.Frame(urwid.ListBox(self.content))
         self.footer = urwid.Edit("", "")
