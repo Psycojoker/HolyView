@@ -533,7 +533,9 @@ class MainList(object):
         self.content = [ItemWidget(i) for i in self.item_list.get()]
         if not self.content:
             self.content = [urwid.Text("You don't have any item yet, press \"a\" to add a new one and \"?\" for help and \"G\" to enter grid view")]
-        self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
+            self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, '') for i in self.content])
+        else:
+            self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame = urwid.Frame(urwid.ListBox(self.content))
         self.footer = urwid.Edit("", "")
         self.frame.set_footer(self.footer)
@@ -567,8 +569,10 @@ class MainList(object):
         D(self.content)
         if not self.content:
             self.content = [urwid.Text("You don't have any item yet, press \"a\" to add a new one and \"?\" for help")]
+            self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, '') for i in self.content])
             self.position = 0
-        self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
+        else:
+            self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame.set_body(urwid.ListBox(self.content))
         self.frame.get_body().set_focus(self.position)
         self.state.set_state("main")
