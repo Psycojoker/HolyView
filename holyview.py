@@ -314,6 +314,7 @@ class GridView(object):
         command(self.go_left_in_grid,           "H", "grid", "select the left grid")
         command(self.remove_current_item,       "d", "grid", "remove the current item")
         command(self.rename_current_item,       "r", "grid", "rename the current item")
+        command(self.edit_current_item,         "e", "grid", "edit the current item")
         command(self.toggle_current_item,       " ", "grid", "toggle the current item (between finished and unfinished)")
         command(self.add_point,                 "+", "grid", "add a point the current item")
         command(self.remove_point,              "-", "grid", "remove a point the current item")
@@ -332,6 +333,16 @@ class GridView(object):
 
         command(self.fill_list,                 "update", "grid", None)
         command(self.get_user_input_grid,       "enter", "user_input_grid", None)
+
+    def edit_current_item(self):
+        self._wait_for_input("New description: ", self.get_edit_current_item, edit_text=self._get_current_item().name)
+
+    @disconnect
+    @have_input
+    @update_grid
+    def get_edit_current_item(self):
+        self._get_current_item().name = self.user_input
+        self._get_current_widget().update()
 
     def rename_current_item(self):
         self._wait_for_input("New description: ", self.get_rename_current_item)
@@ -368,8 +379,10 @@ class GridView(object):
         louie.send("set state", None, "grid")
         louie.send("user_input_done")
 
-    def _wait_for_input(self, text, callback):
+    def _wait_for_input(self, text, callback, edit_text=""):
         self.frame.set_focus('footer')
+        self.frame.footer.edit_text = edit_text
+        self.frame.footer.edit_pos = len(edit_text)
         self.frame.get_footer().set_caption(text)
         louie.send("set state", None, "user_input_grid")
         louie.connect(callback, "user_input_done")
