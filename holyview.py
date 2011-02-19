@@ -604,6 +604,7 @@ class MainList(object):
         command(self.go_up,                     "up", "main", "move the cursor up")
         command(self.remove_current_item,       "d", "main", "remove the current item")
         command(self.rename_current_item,       "r", "main", "rename the current item")
+        command(self.edit_current_item,         "e", "main", "rename the current item")
         command(self.toggle_current_item,       " ", "main", "toggle the current item (between finished and unfinished)")
         command(self.add_point,                 "+", "main", "add a point the current item")
         command(self.remove_point,              "-", "main", "remove a point the current item")
@@ -670,6 +671,17 @@ class MainList(object):
 
     def exit(self):
         raise urwid.ExitMainLoop
+
+    @cant_be_called_on_empty_list
+    def edit_current_item(self):
+        self._wait_for_input("New description: ", self.get_edit_current_item, edit_text=self._get_current_item().name)
+
+    @disconnect
+    @have_input
+    @update_main
+    def get_edit_current_item(self):
+        self._get_current_item().name = self.user_input
+        self._get_current_widget().update()
 
     @cant_be_called_on_empty_list
     def rename_current_item(self):
@@ -751,8 +763,10 @@ class MainList(object):
         louie.send("set state", None, "main")
         louie.send("user_input_done")
 
-    def _wait_for_input(self, text, callback):
+    def _wait_for_input(self, text, callback, edit_text=""):
         self.frame.set_focus('footer')
+        self.frame.footer.edit_text = edit_text
+        self.frame.footer.edit_pos = len(edit_text)
         self.frame.get_footer().set_caption(text)
         louie.send("set state", None, "user_input_main")
         louie.connect(callback, "user_input_done")
