@@ -35,6 +35,13 @@ def cant_be_called_on_empty_list(func):
             func(*args)
     return _cant_be_called_on_empty_list
 
+def cant_be_called_on_empty_grid(func):
+    def _cant_be_called_on_empty_grid(*args):
+        self = args[0]
+        if len(self._get_current_grid().body) > 1:
+            func(*args)
+    return _cant_be_called_on_empty_grid
+
 def command(func, key, mode, doc):
     louie.connect(func, "%s_%s" % (key, mode))
     if doc:
@@ -344,6 +351,7 @@ class GridView(object):
         self._get_current_item().name = self.user_input
         self._get_current_widget().update()
 
+    @cant_be_called_on_empty_grid
     def rename_current_item(self):
         self._wait_for_input("New description: ", self.get_rename_current_item)
 
@@ -357,6 +365,7 @@ class GridView(object):
     def add_task(self):
         self._wait_for_input("New item: ", self.get_add_task)
 
+    @cant_be_called_on_empty_grid
     @update_grid
     def remove_current_item(self):
         self.item_list.remove(self._get_current_item())
@@ -418,16 +427,19 @@ class GridView(object):
         self.mid_urgency = max(self.item_list.get(), key=lambda x: x.urgency).urgency / 2 if self.item_list.get() else 0
         self.mid_importance = max(self.item_list.get(), key=lambda x: x.importance).importance / 2 if self.item_list.get() else 0
 
+    @cant_be_called_on_empty_grid
     @update_grid
     def remove_point(self):
         self._get_current_item().remove_point()
         self._get_current_widget().update()
 
+    @cant_be_called_on_empty_grid
     @update_grid
     def add_point(self):
         self._get_current_item().add_point()
         self._get_current_widget().update()
 
+    @cant_be_called_on_empty_grid
     @follow_item_in_grid
     @update_grid
     def more_importance(self):
@@ -435,6 +447,7 @@ class GridView(object):
         self._get_current_widget().update()
         return self._get_current_item()
 
+    @cant_be_called_on_empty_grid
     @follow_item_in_grid
     @update_grid
     def less_importance(self):
@@ -442,6 +455,7 @@ class GridView(object):
         self._get_current_widget().update()
         return self._get_current_item()
 
+    @cant_be_called_on_empty_grid
     @follow_item_in_grid
     @update_grid
     def more_urgency(self):
@@ -449,6 +463,7 @@ class GridView(object):
         self._get_current_widget().update()
         return self._get_current_item()
 
+    @cant_be_called_on_empty_grid
     @follow_item_in_grid
     @update_grid
     def less_urgency(self):
@@ -462,6 +477,7 @@ class GridView(object):
     def _get_current_item(self):
         return self.frame.get_body().get_focus().get_focus().get_focus()[0].original_widget.item
 
+    @cant_be_called_on_empty_grid
     @update_grid
     def toggle_current_item(self):
         self._get_current_item().toggle()
@@ -519,11 +535,13 @@ class GridView(object):
             self.frame.get_body().set_focus(1)
         self._get_current_grid().set_focus(self._get_current_position())
 
+    @cant_be_called_on_empty_grid
     def go_down(self):
         if self._get_current_position() < (len(self._get_current_grid().body) - 1):
             setattr(self, "position_%s" % self.current_grid, self._get_current_position() + 1)
             self._get_current_grid().set_focus(self._get_current_position())
 
+    @cant_be_called_on_empty_grid
     def go_up(self):
         if self._get_current_position() > 1:
             setattr(self, "position_%s" % self.current_grid, self._get_current_position() - 1)
@@ -546,7 +564,9 @@ class MainList(object):
         self.content = [ItemWidget(i) for i in self.item_list.get()]
         if not self.content:
             self.content = [urwid.Text("You don't have any item yet, press \"a\" to add a new one and \"?\" for help and \"G\" to enter grid view")]
-        self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
+            self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, '') for i in self.content])
+        else:
+            self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame = urwid.Frame(urwid.ListBox(self.content))
         self.footer = urwid.Edit("", "")
         self.frame.set_footer(self.footer)
@@ -580,8 +600,10 @@ class MainList(object):
         D(self.content)
         if not self.content:
             self.content = [urwid.Text("You don't have any item yet, press \"a\" to add a new one and \"?\" for help")]
+            self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, '') for i in self.content])
             self.position = 0
-        self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
+        else:
+            self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame.set_body(urwid.ListBox(self.content))
         self.frame.get_body().set_focus(self.position)
         self.state.set_state("main")
