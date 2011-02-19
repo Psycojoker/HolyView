@@ -341,6 +341,7 @@ class GridView(object):
         command(self.fill_list,                 "update", "grid", None)
         command(self.get_user_input_grid,       "enter", "user_input_grid", None)
 
+    @cant_be_called_on_empty_grid
     def edit_current_item(self):
         self._wait_for_input("New description: ", self.get_edit_current_item, edit_text=self._get_current_item().name)
 
