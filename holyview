@@ -59,7 +59,6 @@ def cant_be_called_on_empty_grid(func):
 
 def have_input(func):
     def _have_input(*args):
-        # ugly, to get "self"
         if args[0].user_input.strip():
             func(*args)
     return _have_input
@@ -170,7 +169,6 @@ class Item():
             self.progress.pop()
 
     def add_point(self):
-        D('"%s" got a new point' % self.name.encode("Utf-8"))
         self.progress.append(date.today())
 
     def more_urgency(self):
@@ -598,7 +596,6 @@ class MainList(object):
 
     def fill_list(self):
         self.content = [ItemWidget(i) for i in self.item_list.get(self.full_list, self.urgency)]
-        D(self.content)
         if not self.content:
             self.content = [urwid.Text("You don't have any item yet, press \"a\" to add a new one and \"?\" for help")]
             self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, '') for i in self.content])
@@ -638,15 +635,7 @@ class MainList(object):
         return input
 
     def manage_input(self, input):
-        #if self.get_state() == "main":
-            #self.main_view.position = self.frame.get_body().get_focus()[1]
-        #D("%s_%s" % (input, self.get_state()))
         louie.send("%s_%s" % (input, self.get_state()))
-        #if not louie.send("%s_%s" % (input, self.get_state())):
-            # tuple == mouse input
-            #self.show_key.set_text(input if not isinstance(input, tuple) else "%s, %s, %s, %s" % input)
-        #if input == "q":
-            #raise urwid.ExitMainLoop
 
     @cant_be_called_on_empty_list
     def go_down(self):
@@ -769,8 +758,6 @@ class MainList(object):
 
     def get_user_input_main(self):
         self.frame.set_focus('body')
-        # debug
-        #louie.send("show key", None, "Mission description: " + self.frame.footer.get_focus().edit_text)
         self.user_input = self.frame.footer.edit_text
         self.frame.footer.edit_text = ""
         self.frame.footer.set_caption("")
@@ -786,14 +773,6 @@ class MainList(object):
         louie.connect(callback, "user_input_done")
 
 if __name__ == "__main__":
-    #cPickle.dump([Item("first item")], open("/home/psycojoker/.malistdb", "wb"))
-    #ItemList().add("caca")
-    #new_item("first item")
-    #push_view()
-    #a = ItemList()
-    #for i in a.get():
-        #i.progress = list()
-    #a.save()
     MainList().run()
 
 # vim:set shiftwidth=4 tabstop=4 expandtab:
