@@ -42,6 +42,8 @@ def get_documentations():
         for a, b in commands[i]:
             yield urwid.Text("%s : %s" % (a, b))
         yield urwid.Divider(" ")
+    yield urwid.Text("For more informations/repport bugs go to http://blog.worlddomination.be/holyview")
+    yield urwid.Text("Thanks for using this software !")
 
 def cant_be_called_on_empty_list(func):
     def _cant_be_called_on_empty_list(*args):
