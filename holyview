@@ -628,6 +628,8 @@ class MainList(object):
         command(self.go_up,                     "k", "main", "move the cursor up")
         command(self.go_down,                   "down" ,"main", "move the cursor down")
         command(self.go_up,                     "up", "main", "move the cursor up")
+        command(self.go_to_end,                 "end" ,"main", "move the cursor down")
+        command(self.go_to_top,                 "home", "main", "move the cursor up")
         command(self.remove_current_item,       "d", "main", "remove the current item")
         command(self.rename_current_item,       "r", "main", "rename the current item")
         command(self.edit_current_item,         "e", "main", "rename the current item")
@@ -663,6 +665,16 @@ class MainList(object):
         if self.position > 0:
             self.position -= 1
             self.frame.get_body().set_focus(self.position)
+
+    @cant_be_called_on_empty_list
+    def go_to_end(self):
+        self.position = (len(self.content) - 1)
+        self.frame.get_body().set_focus(self.position)
+
+    @cant_be_called_on_empty_list
+    def go_to_top(self):
+        self.position = 0
+        self.frame.get_body().set_focus(self.position)
 
     @cant_be_called_on_empty_list
     @update_main
