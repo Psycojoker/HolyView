@@ -273,10 +273,11 @@ class HelpList(object):
 
 class GridView(object):
     focus = {"1" : (0, 0), "2" : (0, 1), "3" : (1, 0), "4" : (1, 1)}
-    def __init__(self, frame, state, item_list, doc):
+    def __init__(self, frame, state, item_list, doc, footer):
         self.frame = frame
         self.state = state
         self.doc = doc
+        self.footer = footer
         self.item_list = item_list
         self.mid_importance = max(self.item_list.get(), key=lambda x: x.importance).importance / 2 if self.item_list.get() else 0
         self.mid_urgency = max(self.item_list.get(), key=lambda x: x.urgency).urgency / 2 if self.item_list.get() else 0
@@ -381,6 +382,7 @@ class GridView(object):
         self.user_input = self.frame.footer.edit_text
         self.frame.footer.edit_text = ""
         self.frame.footer.set_caption("")
+        self.frame.footer = None
         self.frame.set_focus('body')
         self.frame.get_body().set_focus(self.focus[self.current_grid][0])
         self.frame.get_body().get_focus().set_focus(self.focus[self.current_grid][1])
@@ -388,6 +390,7 @@ class GridView(object):
         louie.send("user_input_done")
 
     def _wait_for_input(self, text, callback, edit_text=""):
+        self.frame.set_footer(self.footer)
         self.frame.set_focus('footer')
         self.frame.footer.edit_text = edit_text
         self.frame.footer.edit_pos = len(edit_text)
@@ -568,11 +571,11 @@ class MainList(object):
             self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame = urwid.Frame(urwid.ListBox(self.content))
         self.footer = urwid.Edit("", "")
-        self.frame.set_footer(self.footer)
+        #self.frame.set_footer(self.footer)
         self.header = urwid.AttrMap(urwid.Text("  HolyView 0.1 -- press ? to see help", wrap='clip'), 'header')
         self.frame.set_header(self.header)
         self.doc = HelpList(self.frame, self.state)
-        self.grid = GridView(self.frame, self.state, self.item_list, self.doc)
+        self.grid = GridView(self.frame, self.state, self.item_list, self.doc, self.footer)
         self.init_signals()
         self.position = 0
         self.full_list = False
@@ -761,14 +764,16 @@ class MainList(object):
         self.user_input = self.frame.footer.edit_text
         self.frame.footer.edit_text = ""
         self.frame.footer.set_caption("")
+        self.frame.footer = None
         louie.send("set state", None, "main")
         louie.send("user_input_done")
 
     def _wait_for_input(self, text, callback, edit_text=""):
+        self.frame.set_footer(self.footer)
         self.frame.set_focus('footer')
         self.frame.footer.edit_text = edit_text
         self.frame.footer.edit_pos = len(edit_text)
-        self.frame.get_footer().set_caption(text)
+        self.frame.get_footer().set_caption((text))
         louie.send("set state", None, "user_input_main")
         louie.connect(callback, "user_input_done")
 
