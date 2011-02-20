@@ -28,6 +28,10 @@ def D(text): open("DEBUG", "a").write("%s\n" % text)
 
 commands = {}
 
+class MyListBox(urwid.ListBox):
+    def keypress(self, size, key):
+        return key
+
 def command(func, key, mode, doc):
     louie.connect(func, "%s_%s" % (key, mode))
     if doc:
@@ -258,7 +262,7 @@ class HelpList(object):
     def fill_list(self):
         self.content = [i for i in get_documentations()]
         self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
-        self.frame.set_body(urwid.ListBox(self.content))
+        self.frame.set_body(MyListBox(self.content))
         if self.state.get() != "help":
             self.previous_state = self.state.get()
         self.state.set_state("help")
@@ -293,10 +297,10 @@ class GridView(object):
         self.urgency = False
 
     def fill_list(self):
-        self.c1 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important (>%s) and urgent (>%s) tems" % (self.mid_importance, self.mid_urgency)), 'center', wrap="any"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgency) if x.importance > self.mid_importance and x.urgency > self.mid_urgency]))
-        self.c2 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important (>%s) items" % self.mid_importance), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgency) if x.importance > self.mid_importance and x.urgency <= self.mid_urgency]))
-        self.c3 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Urgent (>%s) items" % self.mid_urgency), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgency) if x.importance <= self.mid_importance and x.urgency > self.mid_urgency]))
-        self.c4 = urwid.ListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Non urgent (<%s) and non important (<%s) items" % (self.mid_importance, self.mid_urgency)), 'center'), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgency) if x.importance <= self.mid_importance and x.urgency <= self.mid_urgency]))
+        self.c1 = MyListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important (>%s) and urgent (>%s) tems" % (self.mid_importance, self.mid_urgency)), 'center', wrap="any"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgency) if x.importance > self.mid_importance and x.urgency > self.mid_urgency]))
+        self.c2 = MyListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Important (>%s) items" % self.mid_importance), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgency) if x.importance > self.mid_importance and x.urgency <= self.mid_urgency]))
+        self.c3 = MyListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Urgent (>%s) items" % self.mid_urgency), 'center', wrap="clip"), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgency) if x.importance <= self.mid_importance and x.urgency > self.mid_urgency]))
+        self.c4 = MyListBox(urwid.SimpleListWalker([urwid.AttrMap(urwid.Text(('header', "Non urgent (<%s) and non important (<%s) items" % (self.mid_importance, self.mid_urgency)), 'center'), 'header')] + [urwid.AttrMap(ItemWidget(x), None, 'reveal focus') for x in self.item_list.get(self.full_list, self.urgency) if x.importance <= self.mid_importance and x.urgency <= self.mid_urgency]))
         previous_offset_row = self._get_current_grid().offset_rows
         a = urwid.Columns((self.c1, self.c2))
         b = urwid.Columns((self.c3, self.c4))
@@ -314,6 +318,8 @@ class GridView(object):
         self.back_to_main_list = lambda : louie.send("update_main")
         command(self.back_to_main_list,         "G", "grid", "go to list view")
         command(self.add_task,                  "a", "grid", "add a new item")
+        command(self.go_down,                   "down" ,"grid", "move the cursor down")
+        command(self.go_up,                     "up", "grid", "move the cursor up")
         command(self.go_down,                   "j" ,"grid", "move the cursor down")
         command(self.go_up,                     "k", "grid", "move the cursor up")
         command(self.go_down_in_grid,           "J" ,"grid", "select the lower grid")
@@ -571,9 +577,10 @@ class MainList(object):
             self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, '') for i in self.content])
         else:
             self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
-        self.frame = urwid.Frame(urwid.ListBox(self.content))
+        self.frame = urwid.Frame(MyListBox(self.content))
         self.footer = urwid.Edit("", "")
-        self.header = urwid.AttrMap(urwid.Text("  HolyView 0.1 -- press ? to see help", wrap='clip'), 'header')
+        self.frame.set_footer(self.footer)
+        self.header = urwid.AttrMap(urwid.Text("  HolyView 0.1 -- press ? to see help and G to enter grid mode", wrap='clip'), 'header')
         self.frame.set_header(self.header)
         self.doc = HelpList(self.frame, self.state)
         self.grid = GridView(self.frame, self.state, self.item_list, self.doc, self.footer)
@@ -606,7 +613,7 @@ class MainList(object):
             self.position = 0
         else:
             self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
-        self.frame.set_body(urwid.ListBox(self.content))
+        self.frame.set_body(MyListBox(self.content))
         self.frame.get_body().set_focus(self.position)
         self.state.set_state("main")
 
