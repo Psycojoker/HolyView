@@ -32,6 +32,10 @@ class MyListBox(urwid.ListBox):
     def keypress(self, size, key):
         return key
 
+class MyPile(urwid.Pile):
+    def keypress(self, size, key):
+        return key
+
 def cant_be_called_on_empty_list(func):
     def _cant_be_called_on_empty_list(*args):
         self = args[0]
@@ -303,7 +307,7 @@ class GridView(object):
         previous_offset_row = self._get_current_grid().offset_rows
         a = urwid.Columns((self.c1, self.c2))
         b = urwid.Columns((self.c3, self.c4))
-        self.frame.set_body(urwid.Pile((a, b)))
+        self.frame.set_body(MyPile((a, b)))
         self.state.set_state("grid")
 
         self.frame.get_body().set_focus(self.focus[self.current_grid][0])
