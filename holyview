@@ -583,7 +583,6 @@ class MainList(object):
             self.content = urwid.SimpleListWalker([urwid.AttrMap(i, None, 'reveal focus') for i in self.content])
         self.frame = urwid.Frame(MyListBox(self.content))
         self.footer = urwid.Edit("", "")
-        self.frame.set_footer(self.footer)
         self.header = urwid.AttrMap(urwid.Text("  HolyView 0.1 -- press ? to see help and G to enter grid mode", wrap='clip'), 'header')
         self.frame.set_header(self.header)
         self.doc = HelpList(self.frame, self.state)
