@@ -5,7 +5,7 @@ Presentation
 ------------
 Holyview is a tool design to help you choose what could be the most efficient
 thing to work on right now. It is based on the approach suggest by Stephen
-Covey of classifying things by importance and urgence and to focus on important
+Covey of classifying things by importance and urgency and to focus on important
 and non-urgent stuff.
 
 More details here: http://en.wikipedia.org/wiki/First_Things_First_(book)
