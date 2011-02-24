@@ -27,3 +27,11 @@ Installation
 ------------
 In root:
 python setup.py install
+
+Licence
+-------
+HolyView is under gplv3+
+
+
+Thanks for using my soft.
+Laurent Peuch
