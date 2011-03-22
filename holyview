@@ -643,6 +643,7 @@ class MainList(object):
         command(self.toggle_urgency_importance, "y", "main", "toggle displaying the completed items")
         command(self.doc.fill_list,             "?", "main", "display help")
         command(self.grid.fill_list,            "G", "main", "grid view")
+        command(self.search,                    "/", "main", "search for an item")
 
         command(self.fill_list,                  "update", "main", None)
         command(self.get_user_input_main,        "enter", "user_input_main", None)
@@ -781,6 +782,20 @@ class MainList(object):
     @update_main
     def get_add_task(self):
         self.item_list.add(self.user_input)
+
+    def search(self):
+        self._wait_for_input("/", self.get_search)
+
+    @disconnect
+    @have_input
+    def get_search(self):
+        a = self.position + 1 if self.position != len(self.content) - 1 else 0
+        for i in self.content[a:]:
+            if self.user_input in i.original_widget.item.name:
+                break
+            a += 1
+        self.position = a
+        self.frame.get_body().set_focus(self.position)
 
     def get_user_input_main(self):
         self.frame.set_focus('body')
