@@ -789,13 +789,17 @@ class MainList(object):
     @disconnect
     @have_input
     def get_search(self):
-        a = self.position + 1
-        for i in self.content[a:]:
-            if self.user_input in i.original_widget.item.name:
-                self.position = a
-                break
-            a += 1
-        self.frame.get_body().set_focus(self.position)
+        self._last_search = self.user_input
+        def _search(a):
+            for i in self.content[a:]:
+                if self.user_input in i.original_widget.item.name:
+                    self.position = a
+                    return True
+                a += 1
+            return False
+        if _search(self.position + 1) or _search(0):
+            self.frame.get_body().set_focus(self.position)
+
 
     def get_user_input_main(self):
         self.frame.set_focus('body')
