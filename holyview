@@ -20,7 +20,7 @@ import os
 import cPickle
 import urwid
 
-from datetime import date
+from datetime import date, datetime, timedelta
 
 import louie
 
@@ -179,7 +179,10 @@ class Item():
             self.progress.pop()
 
     def add_point(self):
-        self.progress.append(date.today())
+        if datetime.now().time().hour > 6:
+            self.progress.append(date.today())
+        else:
+            self.progress.append(date.today() - timedelta(1))
 
     def more_urgency(self):
         self.urgency += 1
