@@ -591,6 +591,7 @@ class MainList(object):
         self.position = 0
         self.full_list = False
         self.urgency = False
+        self._last_search = ""
 
     def get_state(self):
         return self.state.get()
@@ -644,6 +645,7 @@ class MainList(object):
         command(self.doc.fill_list,             "?", "main", "display help")
         command(self.grid.fill_list,            "G", "main", "grid view")
         command(self.search,                    "/", "main", "search for an item")
+        command(self.search_next,               "n", "main", "search for the next matching item")
 
         command(self.fill_list,                  "update", "main", None)
         command(self.get_user_input_main,        "enter", "user_input_main", None)
@@ -800,6 +802,9 @@ class MainList(object):
         if _search(self.position + 1) or _search(0):
             self.frame.get_body().set_focus(self.position)
 
+    def search_next(self):
+        self.user_input = self._last_search
+        self.get_search()
 
     def get_user_input_main(self):
         self.frame.set_focus('body')
