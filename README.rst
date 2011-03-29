@@ -20,12 +20,12 @@ Create severals items (using "a"). Change their importance/urgence using
 the world.
 
 You worked on a task ? Just press + to increment its progression. The date when
-you incremented is recorded. This way, rpogression plots can be
+you incremented is recorded. This way, progression plots can be
 done.
 
 Installation
 ------------
-An root:
+sn root:
 python setup.py install
 
 Licence
