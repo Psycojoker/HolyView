@@ -25,7 +25,7 @@ done.
 
 Installation
 ------------
-sn root:
+As root:
 python setup.py install
 
 Licence
